@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.PostConstruct;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -13,22 +15,24 @@ import org.springframework.stereotype.Service;
 
 @Service
 @ConfigurationProperties("rfs.security")
-public class RfsUserService implements UserDetailsService {
-    private List<RfsUser> users = new ArrayList<>();
-    private Map<String, RfsUser> usersMap = new HashMap<>();
+public class RfsUserService implements UserDetailsService, InitializingBean {
+    private static final Log logger = LogFactory.getLog(RfsUserService.class);
+
+    private final List<RfsUser> users = new ArrayList<>();
+    private final Map<String, RfsUser> usersMap = new HashMap<>();
 
     // Necessary for configuration binding
     public List<RfsUser> getUsers() {
         return users;
     }
 
-    @PostConstruct
-    public void initializeUsers() {
-        usersMap.clear();
-
+    @Override
+    public void afterPropertiesSet() throws Exception {
         for (RfsUser user : users) {
             usersMap.put(user.getUsername(), user);
         }
+
+        logger.info("Loaded " + usersMap.size() + " users: " + usersMap.keySet());
     }
 
     @Override
