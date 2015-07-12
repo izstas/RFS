@@ -73,7 +73,9 @@ public class MetadataService {
     }
 
     private static void populateSharedMetadata(Metadata metadata, Path path) {
-        metadata.setName(path.getFileName().toString());
+        if (path.getNameCount() > 0) {
+            metadata.setName(path.getFileName().toString());
+        }
 
         BasicFileAttributeView basicAttrsView = Files.getFileAttributeView(path, BasicFileAttributeView.class);
         BasicFileAttributes basicAttrs;
