@@ -4,10 +4,9 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 
 @JsonTypeName("posix")
 public class PosixAttributes extends Attributes {
-    // We don't use primitive types here because we want all properties to be nullable
     private String user;
     private String group;
-    private Integer permissions;
+    private String permissions;
 
     public String getUser() {
         return user;
@@ -25,11 +24,11 @@ public class PosixAttributes extends Attributes {
         this.group = group;
     }
 
-    public Integer getPermissions() {
+    public String getPermissions() {
         return permissions;
     }
 
-    public void setPermissions(Integer permissions) {
+    public void setPermissions(String permissions) {
         this.permissions = permissions;
     }
 }
