@@ -8,4 +8,12 @@ public class NonexistentPathException extends RuntimeException {
     public NonexistentPathException() {
         super("The path does not exist");
     }
+
+    public NonexistentPathException(String message) {
+        super(message);
+    }
+
+    public NonexistentPathException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
