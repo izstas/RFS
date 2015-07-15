@@ -2,4 +2,4 @@ rfs:
   version:
     id: '@project.groupId@'
     short: '@project.version@'
-    full: '@project.version@ (@git.commit.id.describe@)'
+    full: '@project.version@ (@git.commit.id.describe@, built on @git.build.time@)'
