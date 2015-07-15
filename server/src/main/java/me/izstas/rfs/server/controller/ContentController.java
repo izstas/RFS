@@ -2,7 +2,6 @@ package me.izstas.rfs.server.controller;
 
 import java.io.InputStream;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,6 +30,6 @@ public class ContentController {
     @RequestMapping(method = RequestMethod.PUT)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void putContent(@PathWithinPattern String path, InputStream input) {
-        contentService.putContentToUserPath(path, new InputStreamResource(input));
+        contentService.putContentToUserPath(path, input);
     }
 }

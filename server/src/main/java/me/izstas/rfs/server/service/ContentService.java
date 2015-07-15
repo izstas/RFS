@@ -35,7 +35,7 @@ public class ContentService {
     }
 
     @Secured(RfsAccess.WRITE)
-    public void putContentToUserPath(String path, Resource content) {
+    public void putContentToUserPath(String path, InputStream input) {
         Path resolvedPath = pathService.resolveUserPath(path);
         if (Files.exists(resolvedPath) && Files.isDirectory(resolvedPath)) {
             throw new NonexistentPathException("The path is a directory");
@@ -59,8 +59,7 @@ public class ContentService {
             }
         }
 
-        try (InputStream input = content.getInputStream();
-             OutputStream output = Files.newOutputStream(resolvedPath, StandardOpenOption.WRITE, StandardOpenOption.CREATE)) {
+        try (OutputStream output = Files.newOutputStream(resolvedPath, StandardOpenOption.WRITE, StandardOpenOption.CREATE)) {
             StreamUtils.copy(input, output);
         }
         catch (IOException e) {
