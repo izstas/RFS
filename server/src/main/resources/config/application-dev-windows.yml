@@ -1,0 +1,14 @@
+rfs:
+  security:
+    users:
+    - username: anonymous
+      password: '$2a$10$U3DaVnIzwXI5soH6u838r.azdCo/p6VR9IuDNAuyQQvF3i6wvYyje' # Empty
+      root: C:\Users
+      access:
+      - read
+    - username: tester
+      password: '$2a$10$sU/CjQ42uy7t8YUje1a44eyN5JLkVI5kzgh6v67pWW5GALLPVmjCy' # tester
+      root: C:\Users
+      access:
+      - read
+      - write
