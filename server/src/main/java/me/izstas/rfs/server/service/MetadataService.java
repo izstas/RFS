@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 
+import me.izstas.rfs.server.config.security.RfsAccess;
 import me.izstas.rfs.server.model.*;
 
 @Service
@@ -16,7 +17,7 @@ public class MetadataService {
     @Autowired
     private PathService pathService;
 
-    @Secured("read")
+    @Secured(RfsAccess.READ)
     public Metadata getMetadataFromUserPath(String path) {
         Path resolvedPath = pathService.resolveUserPath(path);
         if (Files.notExists(resolvedPath)) {
@@ -24,6 +25,123 @@ public class MetadataService {
         }
 
         return createMetadata(resolvedPath);
+    }
+
+    @Secured(RfsAccess.WRITE)
+    public void applyMetadataToUserPath(String path, Metadata metadata) {
+        Path resolvedPath = pathService.resolveUserPath(path);
+
+        if (metadata instanceof DirectoryMetadata) {
+            if (Files.exists(resolvedPath) && Files.isRegularFile(resolvedPath)) {
+                throw new IncompatibleMetadataException("The path is a file");
+            }
+
+            if (Files.notExists(resolvedPath)) {
+                PathUtils.createDirectories(resolvedPath, false);
+            }
+        }
+
+        if (metadata instanceof FileMetadata) {
+            if (Files.exists(resolvedPath) && Files.isDirectory(resolvedPath)) {
+                throw new IncompatibleMetadataException("The path is a directory");
+            }
+
+            if (Files.notExists(resolvedPath)) {
+                PathUtils.createDirectories(resolvedPath, true);
+
+                try {
+                    Files.createFile(resolvedPath);
+                }
+                catch (IOException e) {
+                    throw PathUtils.wrapException(e, "Can't create the file");
+                }
+            }
+        }
+
+
+        if (metadata.getName() != null) {
+            Path targetPath = resolvedPath.resolveSibling(metadata.getName());
+            pathService.validateUserPath(targetPath);
+
+            if (Files.exists(targetPath)) {
+                throw new BadMetadataException("The target path (name) already exists");
+            }
+
+            PathUtils.createDirectories(targetPath, true);
+
+            try {
+                resolvedPath = Files.move(resolvedPath, targetPath);
+            }
+            catch (IOException e) {
+                throw PathUtils.wrapException(e, "Can't move the file/directory");
+            }
+        }
+
+        BasicFileAttributeView basicAttrsView = Files.getFileAttributeView(resolvedPath, BasicFileAttributeView.class);
+        try {
+            basicAttrsView.setTimes(
+                    metadata.getLastModificationTime() != null ? FileTime.fromMillis(metadata.getLastModificationTime()) : null,
+                    metadata.getLastAccessTime() != null ? FileTime.fromMillis(metadata.getLastAccessTime()) : null,
+                    metadata.getCreationTime() != null ? FileTime.fromMillis(metadata.getCreationTime()) : null);
+        }
+        catch (IOException e) {
+            throw PathUtils.wrapException(e, "Can't apply basic file attributes");
+        }
+
+        if (metadata.getAttributes() != null && metadata.getAttributes() instanceof PosixAttributes) {
+            PosixAttributes attrs = (PosixAttributes) metadata.getAttributes();
+
+            PosixFileAttributeView posixAttrsView = Files.getFileAttributeView(resolvedPath, PosixFileAttributeView.class);
+            if (posixAttrsView != null) {
+                try {
+                    if (attrs.getUser() != null) {
+                        posixAttrsView.setOwner(resolvedPath.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName(attrs.getUser()));
+                    }
+
+                    if (attrs.getGroup() != null) {
+                        posixAttrsView.setGroup(resolvedPath.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByGroupName(attrs.getGroup()));
+                    }
+
+                    if (attrs.getPermissions() != null) {
+                        posixAttrsView.setPermissions(PosixFilePermissions.fromString(attrs.getPermissions()));
+                    }
+                }
+                catch (UserPrincipalNotFoundException e) {
+                    throw new BadMetadataException("The user/group does not exist", e);
+                }
+                catch (IOException e) {
+                    throw PathUtils.wrapException(e, "Can't apply POSIX file attributes");
+                }
+            }
+        }
+
+        if (metadata.getAttributes() != null && metadata.getAttributes() instanceof DosAttributes) {
+            DosAttributes attrs = (DosAttributes) metadata.getAttributes();
+
+            DosFileAttributeView dosAttrsView = Files.getFileAttributeView(resolvedPath, DosFileAttributeView.class);
+            if (dosAttrsView != null) {
+                try {
+                    if (attrs.getReadOnly() != null) {
+                        dosAttrsView.setReadOnly(attrs.getReadOnly());
+                    }
+
+                    if (attrs.getHidden() != null) {
+                        dosAttrsView.setHidden(attrs.getHidden());
+                    }
+
+                    if (attrs.getSystem() != null) {
+                        dosAttrsView.setSystem(attrs.getSystem());
+                    }
+
+                    if (attrs.getArchive() != null) {
+                        dosAttrsView.setArchive(attrs.getArchive());
+                    }
+                }
+                catch (IOException e) {
+                    throw PathUtils.wrapException(e, "Can't apply DOS file attributes");
+                }
+            }
+        }
     }
 
 
@@ -44,7 +162,7 @@ public class MetadataService {
             size = Files.size(path);
         }
         catch (IOException e) {
-            throw new RuntimeException("Can't get file size", e);
+            throw PathUtils.wrapException(e, "Can't get file size");
         }
 
         metadata.setSize(size);
@@ -63,7 +181,7 @@ public class MetadataService {
                 }
             }
             catch (IOException e) {
-                throw new RuntimeException("Can't get directory contents", e);
+                throw PathUtils.wrapException(e, "Can't get directory contents");
             }
 
             metadata.setContents(contents);
@@ -83,7 +201,7 @@ public class MetadataService {
             basicAttrs = basicAttrsView.readAttributes();
         }
         catch (IOException e) {
-            throw new RuntimeException("Can't get basic file attributes", e);
+            throw PathUtils.wrapException(e, "Can't get basic file attributes");
         }
 
         metadata.setCreationTime(basicAttrs.creationTime().toMillis());
@@ -97,7 +215,7 @@ public class MetadataService {
                 posixAttrs = posixAttrsView.readAttributes();
             }
             catch (IOException e) {
-                throw new RuntimeException("Can't get POSIX file attributes", e);
+                throw PathUtils.wrapException(e, "Can't get POSIX file attributes");
             }
 
             PosixAttributes attrs = new PosixAttributes();
@@ -115,7 +233,7 @@ public class MetadataService {
                 dosAttrs = dosAttrsView.readAttributes();
             }
             catch (IOException e) {
-                throw new RuntimeException("Can't get DOS file attributes", e);
+                throw PathUtils.wrapException(e, "Can't get DOS file attributes");
             }
 
             DosAttributes attrs = new DosAttributes();
