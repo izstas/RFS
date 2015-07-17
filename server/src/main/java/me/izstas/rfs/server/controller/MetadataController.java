@@ -22,7 +22,8 @@ public class MetadataController {
     }
 
     @RequestMapping(method = RequestMethod.POST)
-    public void applyMetadata(@PathWithinPattern String path, @RequestBody Metadata metadata) {
+    public Metadata applyMetadata(@PathWithinPattern String path, @RequestBody Metadata metadata) {
         metadataService.applyMetadataToUserPath(path, metadata);
+        return metadataService.getMetadataFromUserPath(path);
     }
 }
