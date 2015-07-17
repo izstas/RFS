@@ -1,6 +1,7 @@
 package me.izstas.rfs.server.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -18,5 +19,10 @@ public class MetadataController {
     @RequestMapping(method = RequestMethod.GET)
     public Metadata getMetadata(@PathWithinPattern String path) {
         return metadataService.getMetadataFromUserPath(path);
+    }
+
+    @RequestMapping(method = RequestMethod.POST)
+    public void applyMetadata(@PathWithinPattern String path, @RequestBody Metadata metadata) {
+        metadataService.applyMetadataToUserPath(path, metadata);
     }
 }
