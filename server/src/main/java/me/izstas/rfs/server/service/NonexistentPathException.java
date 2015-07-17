@@ -3,10 +3,16 @@ package me.izstas.rfs.server.service;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import me.izstas.rfs.server.RfsException;
+
 @ResponseStatus(HttpStatus.NOT_FOUND)
-public class NonexistentPathException extends RuntimeException {
+public class NonexistentPathException extends RfsException {
     public NonexistentPathException() {
         super("The path does not exist");
+    }
+
+    public NonexistentPathException(Throwable cause) {
+        super("The path does not exist", cause);
     }
 
     public NonexistentPathException(String message) {
