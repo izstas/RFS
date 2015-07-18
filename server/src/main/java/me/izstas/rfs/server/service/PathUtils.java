@@ -19,6 +19,10 @@ class PathUtils {
     }
 
     static void createDirectories(Path path, boolean parent) {
+        if (parent && path.getParent() == null) {
+            return;
+        }
+
         try {
             Files.createDirectories(parent ? path.getParent() : path);
         }
