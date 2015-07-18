@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({@JsonSubTypes.Type(FileMetadata.class), @JsonSubTypes.Type(DirectoryMetadata.class)})
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public abstract class Metadata {
+public class Metadata {
     // We don't use primitive types here because we want all properties to be nullable
     private String name;
     private Long creationTime;
