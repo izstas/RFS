@@ -44,26 +44,13 @@ public class ContentService {
             throw new InaccessiblePathException();
         }
 
-        if (resolvedPath.getParent() != null) {
-            try {
-                Files.createDirectories(resolvedPath.getParent());
-            }
-            catch (FileAlreadyExistsException | NoSuchFileException e) { // While combination of these two may look weird,
-                                                                         // on Windows we seem to get the latter one
-                                                                         // if the problem is caused not by the immediate parent
-                                                                         // but a further ascendant
-                throw new NonexistentPathException("The path contains a file (not a directory) as one of the ascendants", e);
-            }
-            catch (IOException e) {
-                throw new RuntimeException("Can't create ascendant directories", e);
-            }
-        }
+        PathUtils.createDirectories(resolvedPath, true);
 
         try (OutputStream output = Files.newOutputStream(resolvedPath, StandardOpenOption.WRITE, StandardOpenOption.CREATE)) {
             StreamUtils.copy(input, output);
         }
         catch (IOException e) {
-            throw new RuntimeException("Can't copy the content to the file", e);
+            throw PathUtils.wrapException(e, "Can't copy the content to the file");
         }
     }
 }
