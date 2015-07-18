@@ -60,7 +60,12 @@ public class MetadataService {
 
 
         if (metadata.getName() != null) {
-            Path targetPath = resolvedPath.resolveSibling(metadata.getName());
+            Path targetName = Paths.get(metadata.getName());
+            if (targetName.isAbsolute()) {
+                throw new BadMetadataException("The target path (name) must not be absolute");
+            }
+
+            Path targetPath = resolvedPath.resolveSibling(targetName);
             pathService.validateUserPath(targetPath);
 
             if (Files.exists(targetPath)) {
