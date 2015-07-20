@@ -13,8 +13,8 @@ public class PathService {
      * @throws BadPathException if the path is not the user's root
      */
     public void validateUserPath(Path path) {
-        Path currentPath = path.toAbsolutePath();
-        Path rootPath = getUserRoot().toAbsolutePath();
+        Path currentPath = path.toAbsolutePath().normalize();
+        Path rootPath = getUserRoot().toAbsolutePath().normalize();
 
         do {
             if (currentPath.equals(rootPath)) {
