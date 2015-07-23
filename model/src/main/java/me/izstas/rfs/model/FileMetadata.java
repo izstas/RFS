@@ -1,7 +1,10 @@
-package me.izstas.rfs.server.model;
+package me.izstas.rfs.model;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
+/**
+ * Represents file metadata.
+ */
 @JsonTypeName("file")
 public class FileMetadata extends Metadata {
     // We don't use primitive types here because we want all properties to be nullable

@@ -1,7 +1,10 @@
-package me.izstas.rfs.server.model;
+package me.izstas.rfs.model;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
+/**
+ * Represents DOS (Windows) file attributes.
+ */
 @JsonTypeName("dos")
 public class DosAttributes extends Attributes {
     // We don't use primitive types here because we want all properties to be nullable

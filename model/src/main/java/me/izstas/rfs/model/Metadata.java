@@ -1,10 +1,15 @@
-package me.izstas.rfs.server.model;
+package me.izstas.rfs.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+/**
+ * Represents file or directory metadata.
+ * @see FileMetadata
+ * @see DirectoryMetadata
+ */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", defaultImpl = Metadata.class)
 @JsonSubTypes({@JsonSubTypes.Type(FileMetadata.class), @JsonSubTypes.Type(DirectoryMetadata.class)})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Metadata {

@@ -1,8 +1,11 @@
-package me.izstas.rfs.server.model;
+package me.izstas.rfs.model;
 
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
+/**
+ * Represents directory metadata.
+ */
 @JsonTypeName("directory")
 public class DirectoryMetadata extends Metadata {
     private List<Metadata> contents;

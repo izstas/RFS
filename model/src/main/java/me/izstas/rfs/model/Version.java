@@ -1,9 +1,9 @@
-package me.izstas.rfs.server.model;
+package me.izstas.rfs.model;
 
 import java.util.List;
 
 /**
- * @see me.izstas.rfs.server.controller.VersionController
+ * Represents basic RFS server information, including version and user's access level.
  */
 public class Version {
     private String id;

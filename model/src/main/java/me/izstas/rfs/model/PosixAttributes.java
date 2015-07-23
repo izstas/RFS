@@ -1,7 +1,10 @@
-package me.izstas.rfs.server.model;
+package me.izstas.rfs.model;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
+/**
+ * Represents POSIX (*nix) file attributes.
+ */
 @JsonTypeName("posix")
 public class PosixAttributes extends Attributes {
     private String user;

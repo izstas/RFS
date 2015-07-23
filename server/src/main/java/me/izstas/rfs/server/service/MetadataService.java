@@ -10,7 +10,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Service;
 
 import me.izstas.rfs.server.config.security.RfsAccess;
-import me.izstas.rfs.server.model.*;
+import me.izstas.rfs.model.*;
 
 @Service
 public class MetadataService {

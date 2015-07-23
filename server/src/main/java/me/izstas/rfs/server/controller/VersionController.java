@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import me.izstas.rfs.server.RfsServerVersion;
-import me.izstas.rfs.server.model.Version;
+import me.izstas.rfs.model.Version;
 
 /**
  * The main purpose of this endpoint is to allow clients which deal with arbitrary URLs

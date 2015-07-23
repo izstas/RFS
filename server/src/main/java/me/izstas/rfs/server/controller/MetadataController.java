@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import me.izstas.rfs.server.config.web.PathWithinPattern;
-import me.izstas.rfs.server.model.Metadata;
+import me.izstas.rfs.model.Metadata;
 import me.izstas.rfs.server.service.MetadataService;
 
 @RestController
