@@ -87,6 +87,14 @@
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <version>2.6</version>
+
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>me.izstas.rfs.client.RfsClient</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
       </plugin>
 
       <plugin>
