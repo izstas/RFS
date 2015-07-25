@@ -1,4 +1,4 @@
-package me.izstas.rfs.client;
+package me.izstas.rfs.client.rfs;
 
 import java.io.IOException;
 import java.net.URI;

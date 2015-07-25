@@ -1,4 +1,4 @@
-package me.izstas.rfs.client;
+package me.izstas.rfs.client.rfs;
 
 /**
  * This exception is thrown when API calls results in an unparseable response.

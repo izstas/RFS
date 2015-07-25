@@ -1,4 +1,4 @@
-package me.izstas.rfs.client;
+package me.izstas.rfs.client.rfs;
 
 /**
  * A base class for exceptions indicating specific RFS API calling errors.
