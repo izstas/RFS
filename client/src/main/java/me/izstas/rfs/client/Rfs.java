@@ -4,11 +4,14 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import org.apache.http.HttpHeaders;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
@@ -98,7 +101,7 @@ public final class Rfs {
             @Override
             public Version call() throws Exception {
                 try (CloseableHttpResponse response = client.execute(request, context)) {
-                    return mapper.readValue(response.getEntity().getContent(), Version.class);
+                    return checkAndParseResponse(response, Version.class);
                 }
             }
         });
@@ -115,9 +118,26 @@ public final class Rfs {
             @Override
             public Metadata call() throws Exception {
                 try (CloseableHttpResponse response = client.execute(request, context)) {
-                    return mapper.readValue(response.getEntity().getContent(), Metadata.class);
+                    return checkAndParseResponse(response, Metadata.class);
                 }
             }
         });
+    }
+
+
+    private <T> T checkAndParseResponse(HttpResponse response, Class<T> clazz) throws IOException {
+        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+            throw new RfsAuthenticationException();
+        }
+        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_FORBIDDEN) {
+            throw new RfsAccessException();
+        }
+
+        try {
+            return mapper.readValue(response.getEntity().getContent(), clazz);
+        }
+        catch (JsonProcessingException e) {
+            throw new RfsResponseException(e);
+        }
     }
 }
