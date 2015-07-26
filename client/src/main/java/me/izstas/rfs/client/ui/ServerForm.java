@@ -3,6 +3,8 @@ package me.izstas.rfs.client.ui;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ResourceBundle;
@@ -18,7 +20,7 @@ import me.izstas.rfs.client.rfs.RfsResponseException;
 import me.izstas.rfs.client.util.SwingExecutor;
 import me.izstas.rfs.model.Version;
 
-public class ServerForm {
+public final class ServerForm {
     private static final Color STATUS_SUCCESS_COLOR = new Color(0, 100, 0);
     private static final Color STATUS_FAILURE_COLOR = new Color(100, 0, 0);
     private static final ResourceBundle resources = ResourceBundle.getBundle("lang/ServerForm");
@@ -35,7 +37,7 @@ public class ServerForm {
     private Rfs checkRfs;
     private ListenableFuture<Version> checkFuture;
 
-    public ServerForm() {
+    private ServerForm() {
         authAnonymousCheckBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -53,11 +55,21 @@ public class ServerForm {
     }
 
     public static JFrame createFrame() {
+        final ServerForm form = new ServerForm();
+
         JFrame frame = new JFrame(resources.getString("title"));
-        frame.setContentPane(new ServerForm().rootPanel);
+        frame.setContentPane(form.rootPanel);
         frame.pack();
         frame.setResizable(false);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                form.cancelActiveCheck();
+            }
+        });
+
         return frame;
     }
 
@@ -66,13 +78,7 @@ public class ServerForm {
         statusLabel.setForeground(UIManager.getColor("Label.foreground"));
         statusLabel.setText(resources.getString("status.checking"));
 
-        if (checkFuture != null && !checkFuture.isDone()) {
-            checkFuture.cancel(false);
-        }
-
-        if (checkRfs != null) {
-            checkRfs.shutdown();
-        }
+        cancelActiveCheck();
 
         try {
             checkRfs = createRfs();
@@ -125,6 +131,16 @@ public class ServerForm {
     private void checkCompleted(boolean success, String status, Object... statusArgs) {
         statusLabel.setForeground(success ? STATUS_SUCCESS_COLOR : STATUS_FAILURE_COLOR);
         statusLabel.setText(String.format(resources.getString(status), statusArgs));
+    }
+
+    private void cancelActiveCheck() {
+        if (checkFuture != null && !checkFuture.isDone()) {
+            checkFuture.cancel(false);
+        }
+
+        if (checkRfs != null) {
+            checkRfs.shutdown();
+        }
     }
 
 
