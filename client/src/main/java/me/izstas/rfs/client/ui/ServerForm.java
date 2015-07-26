@@ -52,6 +52,27 @@ public final class ServerForm {
                 check();
             }
         });
+
+        browseButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent evt) {
+                Rfs rfs;
+                try {
+                    rfs = createRfs();
+                }
+                catch (URISyntaxException e) {
+                    // Forcing check will show error message to the user
+                    check();
+                    return;
+                }
+
+                JFrame browserFrame = BrowserForm.createFrame(rfs);
+                browserFrame.setVisible(true);
+
+                JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(rootPanel);
+                frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
+            }
+        });
     }
 
     public static JFrame createFrame() {
@@ -61,7 +82,7 @@ public final class ServerForm {
         frame.setContentPane(form.rootPanel);
         frame.pack();
         frame.setResizable(false);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
         frame.addWindowListener(new WindowAdapter() {
             @Override
