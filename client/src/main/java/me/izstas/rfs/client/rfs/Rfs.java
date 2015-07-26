@@ -111,7 +111,11 @@ public final class Rfs {
      * Performs GET /metadata/@path (get file metadata) API call.
      */
     public ListenableFuture<Metadata> getMetadata(String path) {
-        final HttpGet request = new HttpGet(uri.resolve(path));
+        if (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+
+        final HttpGet request = new HttpGet(uri.resolve("metadata/").resolve(path));
         request.addHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
 
         return executor.submit(new Callable<Metadata>() {
