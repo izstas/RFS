@@ -144,4 +144,19 @@ public final class Rfs {
             throw new RfsResponseException(e);
         }
     }
+
+
+    /**
+     * Performs early pre-initialization of some classes used by Rfs objects.
+     * While it is not necessary to call this method, it seems to be a good idea
+     * because ObjectMapper and HttpClient take a noticeable amount of time to initialize.
+     */
+    public static void preInitialize() {
+        try {
+            HttpClients.createDefault().close();
+        }
+        catch (IOException e) {
+            // Ignore
+        }
+    }
 }
