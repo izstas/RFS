@@ -58,6 +58,8 @@
   </dependencies>
 
   <build>
+    <finalName>rfs-client</finalName>
+
     <plugins>
       <plugin>
         <artifactId>maven-clean-plugin</artifactId>
