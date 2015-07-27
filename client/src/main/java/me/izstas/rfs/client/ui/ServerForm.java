@@ -143,7 +143,7 @@ public final class ServerForm {
                     checkCompleted(false, "status.failure.response");
                 }
                 else {
-                    checkCompleted(false, "status.failure.generic", e.getClass(), e.getMessage());
+                    checkCompleted(false, "status.failure.generic", e.getClass().getSimpleName(), e.getMessage());
                 }
             }
         }, SwingExecutor.INSTANCE);
