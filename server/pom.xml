@@ -40,7 +40,7 @@
   </dependencies>
 
   <build>
-    <finalName>rfs-server</finalName>
+    <finalName>${project.artifactId}</finalName>
 
     <resources>
       <resource>
