@@ -3,7 +3,7 @@ package me.izstas.rfs.client.ui;
 import org.eclipse.osgi.util.NLS;
 
 public final class Messages extends NLS {
-    private static final String BUNDLE_NAME = "me.izstas.rfs.client.ui.messages";
+    private static final String BUNDLE_NAME = "me.izstas.rfs.client.ui.messages"; //$NON-NLS-1$
 
     public static String ServerDialog_title;
     public static String ServerDialog_url;
@@ -15,7 +15,7 @@ public final class Messages extends NLS {
     public static String ServerDialog_browse;
 
     static {
-        NLS.initializeMessages(BUNDLE_NAME, Messages.class);
+        initializeMessages(BUNDLE_NAME, Messages.class);
     }
 
 

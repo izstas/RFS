@@ -14,14 +14,22 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-public class ServerDialog extends Dialog {
+public final class ServerDialog extends Dialog {
     private static final int CHECK_ID = IDialogConstants.CLIENT_ID + 1;
+
     private Text urlText;
     private Text authUserText;
     private Text authPwdText;
 
     public ServerDialog(Shell parentShell) {
         super(parentShell);
+    }
+
+    @Override
+    protected void configureShell(Shell newShell) {
+        super.configureShell(newShell);
+
+        newShell.setText(Messages.ServerDialog_title);
     }
 
     @Override
