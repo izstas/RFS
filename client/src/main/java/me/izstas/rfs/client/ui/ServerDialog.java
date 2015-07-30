@@ -13,13 +13,17 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 
 public final class ServerDialog extends Dialog {
     private static final int CHECK_ID = IDialogConstants.CLIENT_ID + 1;
 
     private Text urlText;
+    private Button authAnonCheck;
     private Text authUserText;
     private Text authPwdText;
+    private Label statusLabel;
 
     public ServerDialog(Shell parentShell) {
         super(parentShell);
@@ -46,15 +50,20 @@ public final class ServerDialog extends Dialog {
 
         Group authGroup = new Group(container, SWT.NONE);
         authGroup.setLayout(new GridLayout(2, false));
-        GridData gd_authGroup = new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1);
-        gd_authGroup.widthHint = 417;
-        authGroup.setLayoutData(gd_authGroup);
+        authGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false, 2, 1));
         authGroup.setText(Messages.ServerDialog_authentication);
 
-        Button authAnonCheck = new Button(authGroup, SWT.CHECK);
+        authAnonCheck = new Button(authGroup, SWT.CHECK);
         authAnonCheck.setSelection(true);
         authAnonCheck.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
         authAnonCheck.setText(Messages.ServerDialog_authentication_anonymous);
+        authAnonCheck.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                authUserText.setEnabled(!authAnonCheck.getSelection());
+                authPwdText.setEnabled(!authAnonCheck.getSelection());
+            }
+        });
 
         Label authUserLabel = new Label(authGroup, SWT.NONE);
         authUserLabel.setText(Messages.ServerDialog_authentication_username);
@@ -70,7 +79,7 @@ public final class ServerDialog extends Dialog {
         authPwdText.setEnabled(false);
         authPwdText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
-        Label statusLabel = new Label(container, SWT.NONE);
+        statusLabel = new Label(container, SWT.NONE);
         statusLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
 
         return container;
@@ -84,6 +93,6 @@ public final class ServerDialog extends Dialog {
 
     @Override
     protected Point getInitialSize() {
-        return new Point(451, 254);
+        return new Point(500, 254);
     }
 }
