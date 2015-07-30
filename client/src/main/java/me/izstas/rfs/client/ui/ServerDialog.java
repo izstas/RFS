@@ -31,7 +31,7 @@ public class ServerDialog extends Dialog {
         gridLayout.numColumns = 2;
 
         Label urlLabel = new Label(container, SWT.NONE);
-        urlLabel.setText("URL:");
+        urlLabel.setText(Messages.ServerDialog_url);
 
         urlText = new Text(container, SWT.BORDER);
         urlText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -41,22 +41,22 @@ public class ServerDialog extends Dialog {
         GridData gd_authGroup = new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1);
         gd_authGroup.widthHint = 417;
         authGroup.setLayoutData(gd_authGroup);
-        authGroup.setText("Authentication");
+        authGroup.setText(Messages.ServerDialog_authentication);
 
         Button authAnonCheck = new Button(authGroup, SWT.CHECK);
         authAnonCheck.setSelection(true);
         authAnonCheck.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
-        authAnonCheck.setText("Anonymous authentication");
+        authAnonCheck.setText(Messages.ServerDialog_authentication_anonymous);
 
         Label authUserLabel = new Label(authGroup, SWT.NONE);
-        authUserLabel.setText("Username:");
+        authUserLabel.setText(Messages.ServerDialog_authentication_username);
 
         authUserText = new Text(authGroup, SWT.BORDER);
         authUserText.setEnabled(false);
         authUserText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
         Label authPwdLabel = new Label(authGroup, SWT.NONE);
-        authPwdLabel.setText("Password:");
+        authPwdLabel.setText(Messages.ServerDialog_authentication_password);
 
         authPwdText = new Text(authGroup, SWT.BORDER);
         authPwdText.setEnabled(false);
@@ -70,8 +70,8 @@ public class ServerDialog extends Dialog {
 
     @Override
     protected void createButtonsForButtonBar(Composite parent) {
-        createButton(parent, CHECK_ID, "Check", false);
-        createButton(parent, IDialogConstants.OK_ID, "Browse", true);
+        createButton(parent, CHECK_ID, Messages.ServerDialog_check, false);
+        createButton(parent, IDialogConstants.OK_ID, Messages.ServerDialog_browse, true);
     }
 
     @Override
