@@ -75,7 +75,7 @@ public final class ServerDialog extends Dialog {
         Label authPwdLabel = new Label(authGroup, SWT.NONE);
         authPwdLabel.setText(Messages.ServerDialog_authentication_password);
 
-        authPwdText = new Text(authGroup, SWT.BORDER);
+        authPwdText = new Text(authGroup, SWT.BORDER | SWT.PASSWORD);
         authPwdText.setEnabled(false);
         authPwdText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
