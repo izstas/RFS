@@ -1,29 +1,46 @@
 package me.izstas.rfs.client.ui;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.concurrent.CancellationException;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
 
+import me.izstas.rfs.client.rfs.Rfs;
+import me.izstas.rfs.client.rfs.RfsAuthenticationException;
+import me.izstas.rfs.client.rfs.RfsResponseException;
+import me.izstas.rfs.client.util.SwtAsyncExecutor;
+import me.izstas.rfs.model.Version;
+
+/**
+ * A dialog prompting the user to enter server URL and credentials.
+ */
 public final class ServerDialog extends Dialog {
     private static final int CHECK_ID = IDialogConstants.CLIENT_ID + 1;
+    private static final Color STATUS_SUCCESS_COLOR = new Color(null, 0, 100, 0);
+    private static final Color STATUS_FAILURE_COLOR = new Color(null, 100, 0, 0);
 
     private Text urlText;
     private Button authAnonCheck;
     private Text authUserText;
     private Text authPwdText;
     private Label statusLabel;
+
+    private Rfs checkRfs;
+    private ListenableFuture<Version> checkFuture;
 
     public ServerDialog(Shell parentShell) {
         super(parentShell);
@@ -34,6 +51,12 @@ public final class ServerDialog extends Dialog {
         super.configureShell(newShell);
 
         newShell.setText(Messages.ServerDialog_title);
+        newShell.addShellListener(new ShellAdapter() {
+            @Override
+            public void shellClosed(ShellEvent e) {
+                cancelActiveCheck();
+            }
+        });
     }
 
     @Override
@@ -80,7 +103,7 @@ public final class ServerDialog extends Dialog {
         authPwdText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
         statusLabel = new Label(container, SWT.NONE);
-        statusLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
+        statusLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
 
         return container;
     }
@@ -94,5 +117,101 @@ public final class ServerDialog extends Dialog {
     @Override
     protected Point getInitialSize() {
         return new Point(500, 254);
+    }
+
+    @Override
+    protected void buttonPressed(int buttonId) {
+        if (buttonId == CHECK_ID) {
+            check();
+        }
+        else if (buttonId == IDialogConstants.OK_ID) { // Browse
+            // TODO
+        }
+    }
+
+
+    private void check() {
+        statusLabel.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
+        statusLabel.setText(Messages.ServerDialog_status_checking);
+
+        cancelActiveCheck();
+
+        try {
+            checkRfs = createRfs();
+        }
+        catch (URISyntaxException e) {
+            checkCompleted(false, Messages.ServerDialog_status_failure_url);
+            return;
+        }
+
+        checkFuture = checkRfs.getVersion();
+        Futures.addCallback(checkFuture, new FutureCallback<Version>() {
+            @Override
+            public void onSuccess(Version version) {
+                if (!"me.izstas.rfs".equals(version.getId())) {
+                    checkCompleted(false, Messages.ServerDialog_status_failure_response);
+                    return;
+                }
+
+                if (version.getAccess() == null || !version.getAccess().contains("read")) {
+                    checkCompleted(false, Messages.ServerDialog_status_failure_noRead);
+                    return;
+                }
+
+                if (version.getAccess().contains("write")) {
+                    checkCompleted(true, Messages.ServerDialog_status_success_readWrite);
+                }
+                else {
+                    checkCompleted(true, Messages.ServerDialog_status_success_readOnly);
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable e) {
+                if (e instanceof CancellationException) {
+                    // Ignore. We should be starting a new check now
+                }
+                else if (e instanceof RfsResponseException) {
+                    checkCompleted(false, Messages.ServerDialog_status_failure_response);
+                }
+                else if (e instanceof RfsAuthenticationException) {
+                    checkCompleted(false, Messages.ServerDialog_status_failure_authentication);
+                }
+                else {
+                    checkCompleted(false, Messages.ServerDialog_status_failure_unknown);
+                }
+            }
+        }, SwtAsyncExecutor.INSTANCE);
+    }
+
+    private void checkCompleted(boolean success, String status) {
+        statusLabel.setForeground(success ? STATUS_SUCCESS_COLOR : STATUS_FAILURE_COLOR);
+        statusLabel.setText(status);
+    }
+
+    private void cancelActiveCheck() {
+        if (checkFuture != null && !checkFuture.isDone()) {
+            checkFuture.cancel(false);
+        }
+
+        if (checkRfs != null) {
+            checkRfs.shutdown();
+        }
+    }
+
+
+    private Rfs createRfs() throws URISyntaxException {
+        URI uri = new URI(urlText.getText());
+
+        if (!"http".equalsIgnoreCase(uri.getScheme()) && !"https".equalsIgnoreCase(uri.getScheme())) {
+            throw new URISyntaxException(urlText.getText(), "scheme must be http or https");
+        }
+
+        if (authAnonCheck.getSelection()) {
+            return new Rfs(uri);
+        }
+        else {
+            return new Rfs(uri, authUserText.getText(), authPwdText.getText());
+        }
     }
 }
