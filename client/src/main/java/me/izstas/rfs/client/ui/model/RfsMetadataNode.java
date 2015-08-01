@@ -1,15 +1,11 @@
 package me.izstas.rfs.client.ui.model;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import javax.swing.tree.TreePath;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
-import org.jdesktop.swingx.tree.TreeModelSupport;
+import org.eclipse.jface.viewers.TreeViewer;
 
 import me.izstas.rfs.client.rfs.Rfs;
-import me.izstas.rfs.client.util.SwingExecutor;
+import me.izstas.rfs.client.util.SwtAsyncExecutor;
 import me.izstas.rfs.model.DirectoryMetadata;
 import me.izstas.rfs.model.Metadata;
 
@@ -17,29 +13,18 @@ import me.izstas.rfs.model.Metadata;
  * A node that wraps a {@link Metadata} object, representing a file or a directory.
  */
 public class RfsMetadataNode extends RfsNode {
-    private final TreePath treePath;
-
     private Metadata metadata;
-    private List<RfsNode> children;
+    private RfsNode[] children;
     private boolean childrenRequested;
     private boolean childrenRetrieved;
 
     /**
-     * Constructs the node as a root node of the tree.
-     * @param metadata the metadata to be wrapped in this node
-     */
-    public RfsMetadataNode(Metadata metadata) {
-        this.treePath = new TreePath(this);
-        this.metadata = metadata;
-    }
-
-    /**
      * Constructs the node.
-     * @param parentPath the path to the parent node in the tree
+     * @param parent the parent node
      * @param metadata the metadata to be wrapped in this node
      */
-    public RfsMetadataNode(TreePath parentPath, Metadata metadata) {
-        this.treePath = parentPath.pathByAddingChild(this);
+    public RfsMetadataNode(RfsNode parent, Metadata metadata) {
+        super(parent);
         this.metadata = metadata;
     }
 
@@ -47,7 +32,7 @@ public class RfsMetadataNode extends RfsNode {
      * Returns RFS path to the file or directory represented by this node.
      */
     public String getRfsPath() {
-        return ((RfsMetadataNode) treePath.getParentPath().getLastPathComponent()).getRfsPath() + '/' + metadata.getName();
+        return ((RfsMetadataNode) parent).getRfsPath() + '/' + metadata.getName();
     }
 
     /**
@@ -59,7 +44,7 @@ public class RfsMetadataNode extends RfsNode {
 
     /**
      * Checks whether the children of this node have already been retrieved.
-     * @return true if children have already been retrieved, false otherwise
+     * @return {@code true} if children have already been retrieved, {@code false} otherwise
      */
     public boolean areChildrenRetrieved() {
         return childrenRetrieved;
@@ -68,52 +53,53 @@ public class RfsMetadataNode extends RfsNode {
     /**
      * Retrieves the children from the RFS API.
      * @param rfs the RFS API to request children from
-     * @param support the {@link TreeModelSupport} which will be used to notify about model changes
+     * @param viewer the {@link TreeViewer} which will be refreshed when the operation completes
      */
-    public void retrieveChildren(final Rfs rfs, final TreeModelSupport support) {
+    public void retrieveChildren(final Rfs rfs, final TreeViewer viewer) {
         if (childrenRequested) {
             return;
         }
 
         childrenRequested = true;
-        children = Collections.singletonList(RfsDummyNode.INSTANCE);
+        children = new RfsNode[] {new RfsDummyRetrievingNode(this)};
 
         Futures.addCallback(rfs.getMetadata(getRfsPath()), new FutureCallback<Metadata>() {
             @Override
             public void onSuccess(Metadata meta) {
                 metadata = meta;
+                childrenRequested = false;
                 childrenRetrieved = true;
-
-                support.fireChildRemoved(treePath, 0, RfsDummyNode.INSTANCE);
 
                 if (meta instanceof DirectoryMetadata) {
                     DirectoryMetadata dirMeta = (DirectoryMetadata) meta;
 
-                    int[] indices = new int[dirMeta.getContents().size()];
-                    children = new ArrayList<>();
-                    for (int i = 0; i < dirMeta.getContents().size(); i++) {
-                        indices[i] = i;
-                        children.add(new RfsMetadataNode(treePath, dirMeta.getContents().get(i)));
+                    children = new RfsNode[dirMeta.getContents().size()];
+                    for (int i = 0; i < children.length; i++) {
+                        children[i] = new RfsMetadataNode(RfsMetadataNode.this, dirMeta.getContents().get(i));
                     }
-
-                    support.fireChildrenAdded(treePath, indices, children.toArray(new RfsNode[children.size()]));
                 }
                 else {
-                    children = Collections.emptyList();
+                    children = new RfsNode[0];
                 }
+
+                viewer.refresh(RfsMetadataNode.this);
             }
 
             @Override
             public void onFailure(Throwable e) {
-                // TODO: Handle
+                childrenRequested = false;
+                childrenRetrieved = true;
+                children = new RfsNode[] {new RfsDummyErrorNode(RfsMetadataNode.this, e)};
+
+                viewer.refresh(RfsMetadataNode.this);
             }
-        }, SwingExecutor.INSTANCE);
+        }, SwtAsyncExecutor.INSTANCE);
     }
 
     /**
      * Returns the children of this node.
      */
-    public List<RfsNode> getChildren() {
+    public RfsNode[] getChildren() {
         return children;
     }
 }
