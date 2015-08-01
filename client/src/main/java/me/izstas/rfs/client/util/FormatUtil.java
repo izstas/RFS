@@ -36,12 +36,12 @@ public final class FormatUtil {
      * @param date the date
      * @return formatted date
      */
-    public static String formatDate(Date date) {
+    public static String formatDate(Long date) {
         if (date == null) {
             return null;
         }
 
-        return DateFormat.getDateTimeInstance().format(date);
+        return DateFormat.getDateTimeInstance().format(new Date(date));
     }
 
     /**
