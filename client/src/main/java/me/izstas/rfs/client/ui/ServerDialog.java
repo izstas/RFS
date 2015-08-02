@@ -11,8 +11,6 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.ShellAdapter;
-import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
@@ -20,8 +18,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
 import me.izstas.rfs.client.rfs.Rfs;
-import me.izstas.rfs.client.rfs.RfsAuthenticationException;
-import me.izstas.rfs.client.rfs.RfsResponseException;
 import me.izstas.rfs.client.util.SwtAsyncExecutor;
 import me.izstas.rfs.model.Version;
 
@@ -30,8 +26,8 @@ import me.izstas.rfs.model.Version;
  */
 public final class ServerDialog extends Dialog {
     private static final int CHECK_ID = IDialogConstants.CLIENT_ID + 1;
-    private static final Color STATUS_SUCCESS_COLOR = new Color(null, 0, 100, 0);
-    private static final Color STATUS_FAILURE_COLOR = new Color(null, 100, 0, 0);
+    private static final Color STATUS_SUCCESS_COLOR = new Color(Display.getCurrent(), 0, 100, 0);
+    private static final Color STATUS_FAILURE_COLOR = new Color(Display.getCurrent(), 100, 0, 0);
 
     private Text urlText;
     private Button authAnonCheck;
@@ -42,8 +38,18 @@ public final class ServerDialog extends Dialog {
     private Rfs checkRfs;
     private ListenableFuture<Version> checkFuture;
 
+    private Rfs rfs;
+
     public ServerDialog(Shell parentShell) {
         super(parentShell);
+    }
+
+    /**
+     * Returns the RFS object created based on the information specified by the user in this dialog.
+     * @return the RFS object, or {@code null} if the object is not created (e.g. user didn't press OK)
+     */
+    public Rfs getRfs() {
+        return rfs;
     }
 
     @Override
@@ -51,12 +57,6 @@ public final class ServerDialog extends Dialog {
         super.configureShell(newShell);
 
         newShell.setText(Messages.ServerDialog_title);
-        newShell.addShellListener(new ShellAdapter() {
-            @Override
-            public void shellClosed(ShellEvent e) {
-                cancelActiveCheck();
-            }
-        });
     }
 
     @Override
@@ -111,7 +111,7 @@ public final class ServerDialog extends Dialog {
     @Override
     protected void createButtonsForButtonBar(Composite parent) {
         createButton(parent, CHECK_ID, Messages.ServerDialog_check, false);
-        createButton(parent, IDialogConstants.OK_ID, Messages.ServerDialog_browse, true);
+        createButton(parent, IDialogConstants.OK_ID, Messages.ServerDialog_ok, true);
     }
 
     @Override
@@ -120,12 +120,27 @@ public final class ServerDialog extends Dialog {
     }
 
     @Override
+    public boolean close() {
+        cancelActiveCheck();
+        return super.close();
+    }
+
+    @Override
     protected void buttonPressed(int buttonId) {
         if (buttonId == CHECK_ID) {
             check();
         }
-        else if (buttonId == IDialogConstants.OK_ID) { // Browse
-            // TODO
+        else if (buttonId == IDialogConstants.OK_ID) {
+            try {
+                rfs = createRfs();
+            }
+            catch (URISyntaxException e) {
+                check(); // Forcing a check will show user the error
+                return;
+            }
+
+            setReturnCode(OK);
+            close();
         }
     }
 
@@ -149,7 +164,7 @@ public final class ServerDialog extends Dialog {
             @Override
             public void onSuccess(Version version) {
                 if (!"me.izstas.rfs".equals(version.getId())) {
-                    checkCompleted(false, Messages.ServerDialog_status_failure_response);
+                    checkCompleted(false, String.format(Messages.ServerDialog_status_failure, Messages.rfs_error_response));
                     return;
                 }
 
@@ -171,14 +186,8 @@ public final class ServerDialog extends Dialog {
                 if (e instanceof CancellationException) {
                     // Ignore. We should be starting a new check now
                 }
-                else if (e instanceof RfsResponseException) {
-                    checkCompleted(false, Messages.ServerDialog_status_failure_response);
-                }
-                else if (e instanceof RfsAuthenticationException) {
-                    checkCompleted(false, Messages.ServerDialog_status_failure_authentication);
-                }
                 else {
-                    checkCompleted(false, Messages.ServerDialog_status_failure_unknown);
+                    checkCompleted(false, String.format(Messages.ServerDialog_status_failure, Messages.getForException(e)));
                 }
             }
         }, SwtAsyncExecutor.INSTANCE);
