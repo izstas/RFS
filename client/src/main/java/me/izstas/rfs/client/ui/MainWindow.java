@@ -3,6 +3,9 @@ package me.izstas.rfs.client.ui;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.ITreeSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.window.ApplicationWindow;
@@ -17,9 +20,12 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 
 import me.izstas.rfs.client.rfs.Rfs;
+import me.izstas.rfs.client.ui.model.RfsMetadataNode;
 import me.izstas.rfs.client.ui.model.RfsRootNode;
 import me.izstas.rfs.client.ui.model.RfsTreeContentProvider;
 import me.izstas.rfs.client.ui.model.RfsTreeColumnLabelProviders;
+import me.izstas.rfs.model.FileMetadata;
+import me.izstas.rfs.model.Metadata;
 
 /**
  * The main window.
@@ -29,6 +35,8 @@ public final class MainWindow extends ApplicationWindow {
     private Action connectAction;
     private Action refreshAction;
     private Action exitAction;
+    private Action downloadAction;
+    private Action attributesAction;
 
     private Rfs rfs;
 
@@ -54,6 +62,7 @@ public final class MainWindow extends ApplicationWindow {
         container.setLayout(containerLayout);
 
         rfsTreeViewer = new TreeViewer(container, SWT.NONE);
+        addTreeViewerMenu();
         Tree rfsTree = rfsTreeViewer.getTree();
         rfsTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
         rfsTree.setHeaderVisible(true);
@@ -86,6 +95,7 @@ public final class MainWindow extends ApplicationWindow {
     }
 
     private void createActions() {
+        // Server menu
         connectAction = new Action(Messages.MainWindow_action_connect) {
             @Override
             public void run() {
@@ -122,6 +132,25 @@ public final class MainWindow extends ApplicationWindow {
             }
         };
         exitAction.setAccelerator(SWT.ALT | SWT.F4);
+
+        // Tree context menu
+        downloadAction = new Action(Messages.MainWindow_action_download) {
+            @Override
+            public void run() {
+                // TODO
+            }
+        };
+        downloadAction.setEnabled(false);
+        downloadAction.setAccelerator(SWT.CR);
+
+        attributesAction = new Action(Messages.MainWindow_action_attributes) {
+            @Override
+            public void run() {
+                // TODO
+            }
+        };
+        attributesAction.setEnabled(false);
+        attributesAction.setAccelerator(SWT.ALT | SWT.CR);
     }
 
     @Override
@@ -137,6 +166,30 @@ public final class MainWindow extends ApplicationWindow {
         serverMenu.add(exitAction);
 
         return menu;
+    }
+
+    private void addTreeViewerMenu() {
+        MenuManager menu = new MenuManager();
+        menu.add(downloadAction);
+        menu.add(attributesAction);
+
+        rfsTreeViewer.getTree().setMenu(menu.createContextMenu(rfsTreeViewer.getTree()));
+        rfsTreeViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+            @Override
+            public void selectionChanged(SelectionChangedEvent event) {
+                Object node = ((ITreeSelection) event.getSelection()).getFirstElement();
+                if (node != null && node instanceof RfsMetadataNode) {
+                    Metadata meta = ((RfsMetadataNode) node).getMetadata();
+
+                    downloadAction.setEnabled(meta instanceof FileMetadata);
+                    attributesAction.setEnabled(true);
+                }
+                else {
+                    downloadAction.setEnabled(false);
+                    attributesAction.setEnabled(false);
+                }
+            }
+        });
     }
 
     @Override
