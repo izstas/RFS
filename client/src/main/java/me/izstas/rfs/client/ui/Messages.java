@@ -41,6 +41,14 @@ public final class Messages extends NLS {
     public static String ServerDialog_status_failure_noRead;
     public static String ServerDialog_status_failure;
 
+    public static String AttributesDialog_title;
+    public static String AttributesDialog_name;
+    public static String AttributesDialog_dateCreated;
+    public static String AttributesDialog_dateAccessed;
+    public static String AttributesDialog_dateModified;
+    public static String AttributesDialog_error_title;
+    public static String AttributesDialog_error_message;
+
     public static String rfs_error_response;
     public static String rfs_error_authentication;
     public static String rfs_error_access;
