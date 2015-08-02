@@ -1,5 +1,7 @@
 package me.izstas.rfs.client.ui;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
@@ -13,17 +15,14 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Tree;
-import org.eclipse.swt.widgets.TreeColumn;
+import org.eclipse.swt.widgets.*;
 
 import me.izstas.rfs.client.rfs.Rfs;
 import me.izstas.rfs.client.ui.model.RfsMetadataNode;
 import me.izstas.rfs.client.ui.model.RfsRootNode;
 import me.izstas.rfs.client.ui.model.RfsTreeContentProvider;
 import me.izstas.rfs.client.ui.model.RfsTreeColumnLabelProviders;
+import me.izstas.rfs.client.util.SwtAsyncExecutor;
 import me.izstas.rfs.model.FileMetadata;
 import me.izstas.rfs.model.Metadata;
 
@@ -146,7 +145,23 @@ public final class MainWindow extends ApplicationWindow {
         attributesAction = new Action(Messages.MainWindow_action_attributes) {
             @Override
             public void run() {
-                // TODO
+                final RfsMetadataNode node = (RfsMetadataNode) ((ITreeSelection) rfsTreeViewer.getSelection()).getFirstElement();
+
+                AttributesDialog attributesDialog = new AttributesDialog(getShell(), rfs, node.getPath(), node.getMetadata());
+                if (attributesDialog.open() == OK) {
+                    Futures.addCallback(attributesDialog.getFuture(), new FutureCallback<Void>() {
+                        @Override
+                        public void onSuccess(Void result) {
+                            ((RfsMetadataNode) node.getParent()).retrieveChildren(rfs, rfsTreeViewer);
+                            rfsTreeViewer.refresh(node.getParent());
+                        }
+
+                        @Override
+                        public void onFailure(Throwable e) {
+                            // AttributesDialog will show the error message
+                        }
+                    }, SwtAsyncExecutor.INSTANCE);
+                }
             }
         };
         attributesAction.setEnabled(false);
