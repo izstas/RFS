@@ -29,10 +29,10 @@ public class RfsMetadataNode extends RfsNode {
     }
 
     /**
-     * Returns RFS path to the file or directory represented by this node.
+     * Returns an RFS path to the file or directory represented by this node.
      */
-    public String getRfsPath() {
-        return ((RfsMetadataNode) parent).getRfsPath() + '/' + metadata.getName();
+    public String getPath() {
+        return ((RfsMetadataNode) parent).getPath() + '/' + metadata.getName();
     }
 
     /**
@@ -63,7 +63,7 @@ public class RfsMetadataNode extends RfsNode {
         childrenRequested = true;
         children = new RfsNode[] {new RfsDummyRetrievingNode(this)};
 
-        Futures.addCallback(rfs.getMetadata(getRfsPath()), new FutureCallback<Metadata>() {
+        Futures.addCallback(rfs.getMetadata(getPath()), new FutureCallback<Metadata>() {
             @Override
             public void onSuccess(Metadata meta) {
                 metadata = meta;

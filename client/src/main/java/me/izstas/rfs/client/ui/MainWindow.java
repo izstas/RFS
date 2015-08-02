@@ -20,7 +20,7 @@ import org.eclipse.swt.widgets.TreeColumn;
 
 import me.izstas.rfs.client.rfs.Rfs;
 import me.izstas.rfs.client.ui.model.RfsRootNode;
-import me.izstas.rfs.client.ui.model.RfsTree;
+import me.izstas.rfs.client.ui.model.RfsTreeContentProvider;
 import me.izstas.rfs.client.ui.model.RfsTreeColumnLabelProviders;
 
 /**
@@ -105,7 +105,7 @@ public final class MainWindow extends ApplicationWindow {
                     }
 
                     rfs = serverDialog.getRfs();
-                    rfsTreeViewer.setContentProvider(new RfsTree(rfs, rfsTreeViewer));
+                    rfsTreeViewer.setContentProvider(new RfsTreeContentProvider(rfs, rfsTreeViewer));
                     rfsTreeViewer.setInput(new RfsRootNode());
                 }
             }

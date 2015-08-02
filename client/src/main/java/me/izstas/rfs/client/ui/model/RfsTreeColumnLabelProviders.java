@@ -7,6 +7,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
 
+import me.izstas.rfs.client.ui.Messages;
 import me.izstas.rfs.client.util.FormatUtil;
 import me.izstas.rfs.model.DirectoryMetadata;
 import me.izstas.rfs.model.FileMetadata;
@@ -19,12 +20,18 @@ public final class RfsTreeColumnLabelProviders {
     public static final class Name extends ColumnLabelProvider {
         private Image directoryImage;
         private boolean directoryImageCached;
+        private Image defaultFileImage;
+        private boolean defaultFileImageCached;
         private final Map<String, Image> fileImages = new HashMap<>();
 
         @Override
         public void dispose() {
             if (directoryImage != null) {
                 directoryImage.dispose();
+            }
+
+            if (defaultFileImage != null) {
+                defaultFileImage.dispose();
             }
 
             for (Image fileImage : fileImages.values()) {
@@ -46,8 +53,14 @@ public final class RfsTreeColumnLabelProviders {
                 int extensionIndex = metadata.getName().lastIndexOf('.');
                 if (extensionIndex != -1) {
                     String extension = metadata.getName().substring(extensionIndex);
-                    return getFileImage(extension);
+
+                    Image image = getFileImage(extension);
+                    if (image != null) {
+                        return image;
+                    }
                 }
+
+                return getDefaultFileImage();
             }
 
             return null;
@@ -56,7 +69,7 @@ public final class RfsTreeColumnLabelProviders {
         private Image getDirectoryImage() {
             if (!directoryImageCached) {
                 for (Program program : Program.getPrograms()) {
-                    if (program.getName().equals("Folder")) {
+                    if (program.getName().equalsIgnoreCase("folder")) {
                         if (program.getImageData() != null) {
                             directoryImage = new Image(Display.getCurrent(), program.getImageData());
                         }
@@ -64,10 +77,25 @@ public final class RfsTreeColumnLabelProviders {
                     }
                 }
 
+                if (directoryImage == null) {
+                    directoryImage = new Image(Display.getCurrent(), getClass().getResourceAsStream("/me/izstas/rfs/client/ui/images/directory.png"));
+                }
+
                 directoryImageCached = true;
             }
 
             return directoryImage;
+        }
+
+        private Image getDefaultFileImage() {
+            if (!defaultFileImageCached) {
+                // No way to get a platform-specific icon?
+                defaultFileImage = new Image(Display.getCurrent(), getClass().getResourceAsStream("/me/izstas/rfs/client/ui/images/file.png"));
+
+                defaultFileImageCached = true;
+            }
+
+            return defaultFileImage;
         }
 
         private Image getFileImage(String extension) {
@@ -90,10 +118,10 @@ public final class RfsTreeColumnLabelProviders {
                 return ((RfsMetadataNode) element).getMetadata().getName();
             }
             if (element instanceof RfsDummyRetrievingNode) {
-                return "Loading...";
+                return Messages.MainWindow_tree_loading;
             }
             if (element instanceof RfsDummyErrorNode) {
-                return "Error";
+                return String.format(Messages.MainWindow_tree_error, Messages.getForException(((RfsDummyErrorNode) element).getCause()));
             }
 
             return null;
@@ -113,7 +141,7 @@ public final class RfsTreeColumnLabelProviders {
                 }
             }
 
-            return "";
+            return null;
         }
     }
 
@@ -128,7 +156,7 @@ public final class RfsTreeColumnLabelProviders {
                 return FormatUtil.formatDate(metadata.getLastModificationTime());
             }
 
-            return "";
+            return null;
         }
     }
 
@@ -143,7 +171,7 @@ public final class RfsTreeColumnLabelProviders {
                 return FormatUtil.formatAttributes(metadata.getAttributes());
             }
 
-            return "";
+            return null;
         }
     }
 

@@ -9,18 +9,18 @@ import me.izstas.rfs.model.DirectoryMetadata;
 import me.izstas.rfs.model.Metadata;
 
 /**
- * A {@link ITreeContentProvider} representing RFS tree.
+ * A tree content provider for an RFS tree.
  */
-public final class RfsTree implements ITreeContentProvider {
+public final class RfsTreeContentProvider implements ITreeContentProvider {
     private final Rfs rfs;
     private final TreeViewer viewer;
 
     /**
-     * Constructs the three content provider.
+     * Constructs the tree content provider.
      * @param rfs the RFS API
      * @param viewer the viewer which will be notified about changes when necessary
      */
-    public RfsTree(Rfs rfs, TreeViewer viewer) {
+    public RfsTreeContentProvider(Rfs rfs, TreeViewer viewer) {
         this.rfs = rfs;
         this.viewer = viewer;
     }

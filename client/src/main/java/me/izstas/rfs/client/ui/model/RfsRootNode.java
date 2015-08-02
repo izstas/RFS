@@ -9,7 +9,7 @@ public class RfsRootNode extends RfsMetadataNode {
     }
 
     @Override
-    public String getRfsPath() {
+    public String getPath() {
         return "";
     }
 }
