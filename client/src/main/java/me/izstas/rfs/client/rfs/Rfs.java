@@ -18,8 +18,10 @@ import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIUtils;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
@@ -129,12 +131,45 @@ public final class Rfs {
     }
 
 
+    /**
+     * Performs POST /metadata/@path (apply file metadata) API call.
+     */
+    public ListenableFuture<Void> applyMetadata(String path, Metadata metadata) {
+        if (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+
+        final HttpPost request = new HttpPost(uri.resolve("metadata/").resolve(path));
+        request.addHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
+
+        try {
+            request.setEntity(new ByteArrayEntity(mapper.writeValueAsBytes(metadata)));
+        }
+        catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+        return executor.submit(new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                try (CloseableHttpResponse response = client.execute(request, context)) {
+                    return checkAndParseResponse(response, Void.class);
+                }
+            }
+        });
+    }
+
+
     private <T> T checkAndParseResponse(HttpResponse response, Class<T> clazz) throws IOException {
         if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
             throw new RfsAuthenticationException();
         }
         if (response.getStatusLine().getStatusCode() == HttpStatus.SC_FORBIDDEN) {
             throw new RfsAccessException();
+        }
+
+        if (clazz == Void.class) {
+            return null;
         }
 
         try {
