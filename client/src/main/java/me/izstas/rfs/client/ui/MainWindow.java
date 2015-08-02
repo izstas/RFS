@@ -7,8 +7,6 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ShellAdapter;
-import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -29,6 +27,7 @@ import me.izstas.rfs.client.ui.model.RfsTreeColumnLabelProviders;
 public final class MainWindow extends ApplicationWindow {
     private TreeViewer rfsTreeViewer;
     private Action connectAction;
+    private Action refreshAction;
     private Action exitAction;
 
     private Rfs rfs;
@@ -44,14 +43,6 @@ public final class MainWindow extends ApplicationWindow {
         super.configureShell(newShell);
 
         newShell.setText(Messages.MainWindow_title);
-        newShell.addShellListener(new ShellAdapter() {
-            @Override
-            public void shellClosed(ShellEvent e) {
-                if (rfs != null) {
-                    rfs.shutdown();
-                }
-            }
-        });
     }
 
     @Override
@@ -107,9 +98,22 @@ public final class MainWindow extends ApplicationWindow {
                     rfs = serverDialog.getRfs();
                     rfsTreeViewer.setContentProvider(new RfsTreeContentProvider(rfs, rfsTreeViewer));
                     rfsTreeViewer.setInput(new RfsRootNode());
+                    refreshAction.setEnabled(true);
                 }
             }
         };
+
+        refreshAction = new Action(Messages.MainWindow_action_refresh) {
+            @Override
+            public void run() {
+                if (rfsTreeViewer.getInput() != null) {
+                    ((RfsRootNode) rfsTreeViewer.getInput()).retrieveChildren(rfs, rfsTreeViewer);
+                    rfsTreeViewer.refresh();
+                }
+            }
+        };
+        refreshAction.setEnabled(false);
+        refreshAction.setAccelerator(SWT.F5);
 
         exitAction = new Action(Messages.MainWindow_action_exit) {
             @Override
@@ -128,6 +132,7 @@ public final class MainWindow extends ApplicationWindow {
         menu.add(serverMenu);
 
         serverMenu.add(connectAction);
+        serverMenu.add(refreshAction);
         serverMenu.add(new Separator());
         serverMenu.add(exitAction);
 
@@ -137,5 +142,14 @@ public final class MainWindow extends ApplicationWindow {
     @Override
     protected Point getInitialSize() {
         return new Point(808, 500);
+    }
+
+    @Override
+    public boolean close() {
+        if (rfs != null) {
+            rfs.shutdown();
+        }
+
+        return super.close();
     }
 }
