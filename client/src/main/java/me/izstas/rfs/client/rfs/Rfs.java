@@ -1,6 +1,7 @@
 package me.izstas.rfs.client.rfs;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URI;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
@@ -157,6 +158,23 @@ public final class Rfs {
                 }
             }
         });
+    }
+
+    /**
+     * Performs GET /content/@path (get file content) API call.
+     */
+    public void getContent(String path, final OutputStream output) throws IOException {
+        if (path.startsWith("/")) {
+            path = path.substring(1);
+        }
+
+        final HttpGet request = new HttpGet(uri.resolve("content/").resolve(path));
+        request.addHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
+
+        try (CloseableHttpResponse response = client.execute(request, context)) {
+            checkAndParseResponse(response, Void.class);
+            response.getEntity().writeTo(output);
+        }
     }
 
 

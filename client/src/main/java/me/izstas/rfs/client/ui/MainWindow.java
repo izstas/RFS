@@ -1,10 +1,13 @@
 package me.izstas.rfs.client.ui;
 
+import java.lang.reflect.InvocationTargetException;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -136,7 +139,28 @@ public final class MainWindow extends ApplicationWindow {
         downloadAction = new Action(Messages.MainWindow_action_download) {
             @Override
             public void run() {
-                // TODO
+                final RfsMetadataNode node = (RfsMetadataNode) ((ITreeSelection) rfsTreeViewer.getSelection()).getFirstElement();
+
+                FileDialog fileDialog = new FileDialog(getShell(), SWT.SAVE);
+                fileDialog.setFileName(node.getMetadata().getName());
+                fileDialog.setOverwrite(true);
+
+                String filePath = fileDialog.open();
+                if (filePath != null) {
+                    ProgressMonitorDialog progressMonitorDialog = new ProgressMonitorDialog(getShell());
+
+                    try {
+                        progressMonitorDialog.run(true, false,
+                                new Downloader(rfs, node.getPath(), filePath, ((FileMetadata) node.getMetadata()).getSize()));
+                    }
+                    catch (InvocationTargetException e) {
+                        MessageDialog.openError(getShell(), Messages.MainWindow_download_error_title,
+                                String.format(Messages.MainWindow_download_error_message, Messages.getForException(e.getCause())));
+                    }
+                    catch (InterruptedException e) {
+                        throw new AssertionError(e); // Task is not cancellable
+                    }
+                }
             }
         };
         downloadAction.setEnabled(false);

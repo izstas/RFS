@@ -25,6 +25,9 @@ public final class Messages extends NLS {
     public static String MainWindow_tree_column_attributes;
     public static String MainWindow_tree_loading;
     public static String MainWindow_tree_error;
+    public static String MainWindow_download_downloading;
+    public static String MainWindow_download_error_title;
+    public static String MainWindow_download_error_message;
 
     public static String ServerDialog_title;
     public static String ServerDialog_url;
