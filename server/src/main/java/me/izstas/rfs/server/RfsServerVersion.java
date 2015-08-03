@@ -3,6 +3,10 @@ package me.izstas.rfs.server;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+/**
+ * This component contains the version information of this RFS server.
+ * The information is retrieved from application configuration (rfs.version)
+ */
 @Component
 public class RfsServerVersion {
     @Value("${rfs.version.id}")
