@@ -45,6 +45,7 @@ public class ContentService {
 
     /**
      * Puts the content to the file at the specified path.
+     * Requires write access.
      * @param path the user path (path relative to user's root)
      * @param input the content to put in the form of an {@link InputStream}
      */

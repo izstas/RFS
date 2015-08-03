@@ -22,6 +22,9 @@ public class VersionController {
     @Autowired
     private RfsServerVersion serverVersion;
 
+    /**
+     * This controller method returns the version information of this RFS server.
+     */
     @RequestMapping(method = RequestMethod.GET)
     public Version getVersion(Authentication auth) {
         List<String> access = new ArrayList<>();
