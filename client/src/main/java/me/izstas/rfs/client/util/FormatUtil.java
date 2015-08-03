@@ -33,7 +33,7 @@ public final class FormatUtil {
 
     /**
      * Formats a date.
-     * @param date the date
+     * @param date the date in the form of a UNIX timestamp
      * @return formatted date
      */
     public static String formatDate(Long date) {
@@ -41,7 +41,20 @@ public final class FormatUtil {
             return null;
         }
 
-        return DateFormat.getDateTimeInstance().format(new Date(date));
+        return formatDate(new Date(date));
+    }
+
+    /**
+     * Formats a date.
+     * @param date the date
+     * @return formatted date
+     */
+    public static String formatDate(Date date) {
+        if (date == null) {
+            return null;
+        }
+
+        return DateFormat.getDateTimeInstance().format(date);
     }
 
     /**
@@ -77,7 +90,7 @@ public final class FormatUtil {
         if (attributes.getSystem()) {
             result.append('S');
         }
-        if (attributes.getSystem()) {
+        if (attributes.getArchive()) {
             result.append('A');
         }
 
