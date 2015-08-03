@@ -4,6 +4,7 @@ import org.eclipse.osgi.util.NLS;
 
 import me.izstas.rfs.client.rfs.RfsAccessException;
 import me.izstas.rfs.client.rfs.RfsAuthenticationException;
+import me.izstas.rfs.client.rfs.RfsRequestException;
 import me.izstas.rfs.client.rfs.RfsResponseException;
 
 /**
@@ -52,6 +53,7 @@ public final class Messages extends NLS {
     public static String AttributesDialog_error_message;
 
     public static String rfs_error_response;
+    public static String rfs_error_request;
     public static String rfs_error_authentication;
     public static String rfs_error_access;
     public static String rfs_error_unknown;
@@ -68,6 +70,9 @@ public final class Messages extends NLS {
     public static String getForException(Throwable e) {
         if (e instanceof RfsResponseException) {
             return rfs_error_response;
+        }
+        if (e instanceof RfsRequestException) {
+            return rfs_error_request;
         }
         if (e instanceof RfsAuthenticationException) {
             return rfs_error_authentication;

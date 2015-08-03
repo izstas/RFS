@@ -176,6 +176,10 @@ public final class Rfs {
     }
 
     private void checkResponse(HttpResponse response) {
+        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_REQUEST) {
+            throw new RfsRequestException();
+        }
+
         if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
             throw new RfsAuthenticationException();
         }
