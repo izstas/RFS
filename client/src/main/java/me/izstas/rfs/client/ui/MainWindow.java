@@ -78,7 +78,7 @@ public final class MainWindow extends ApplicationWindow {
         TreeViewerColumn rfsTreeViewerSizeColumn = new TreeViewerColumn(rfsTreeViewer, SWT.NONE);
         rfsTreeViewerSizeColumn.setLabelProvider(new RfsTreeColumnLabelProviders.Size());
         TreeColumn rfsTreeSizeColumn = rfsTreeViewerSizeColumn.getColumn();
-        rfsTreeSizeColumn.setWidth(75);
+        rfsTreeSizeColumn.setWidth(100);
         rfsTreeSizeColumn.setText(Messages.MainWindow_tree_column_size);
 
         TreeViewerColumn rfsTreeViewerModifiedColumn = new TreeViewerColumn(rfsTreeViewer, SWT.NONE);
@@ -233,7 +233,7 @@ public final class MainWindow extends ApplicationWindow {
 
     @Override
     protected Point getInitialSize() {
-        return new Point(808, 500);
+        return new Point(833, 500);
     }
 
     @Override

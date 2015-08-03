@@ -69,7 +69,9 @@ public final class ServerDialog extends Dialog {
         urlLabel.setText(Messages.ServerDialog_url);
 
         urlText = new Text(container, SWT.BORDER);
-        urlText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+        GridData urlTextGridData = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
+        urlTextGridData.widthHint = 400;
+        urlText.setLayoutData(urlTextGridData);
 
         Group authGroup = new Group(container, SWT.NONE);
         authGroup.setLayout(new GridLayout(2, false));
@@ -112,11 +114,6 @@ public final class ServerDialog extends Dialog {
     protected void createButtonsForButtonBar(Composite parent) {
         createButton(parent, CHECK_ID, Messages.ServerDialog_check, false);
         createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-    }
-
-    @Override
-    protected Point getInitialSize() {
-        return new Point(500, 254);
     }
 
     @Override
