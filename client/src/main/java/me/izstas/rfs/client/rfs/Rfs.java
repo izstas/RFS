@@ -187,6 +187,10 @@ public final class Rfs {
         if (response.getStatusLine().getStatusCode() == HttpStatus.SC_FORBIDDEN) {
             throw new RfsAccessException();
         }
+
+        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_INTERNAL_SERVER_ERROR) {
+            throw new RfsException();
+        }
     }
 
     private <T> T checkAndParseResponse(HttpResponse response, Class<T> clazz) throws IOException {
