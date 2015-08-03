@@ -111,7 +111,7 @@ public final class ServerDialog extends Dialog {
     @Override
     protected void createButtonsForButtonBar(Composite parent) {
         createButton(parent, CHECK_ID, Messages.ServerDialog_check, false);
-        createButton(parent, IDialogConstants.OK_ID, Messages.ServerDialog_ok, true);
+        createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
     }
 
     @Override

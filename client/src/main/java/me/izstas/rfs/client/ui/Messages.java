@@ -36,7 +36,6 @@ public final class Messages extends NLS {
     public static String ServerDialog_authentication_username;
     public static String ServerDialog_authentication_password;
     public static String ServerDialog_check;
-    public static String ServerDialog_ok;
     public static String ServerDialog_status_checking;
     public static String ServerDialog_status_success_readOnly;
     public static String ServerDialog_status_success_readWrite;
