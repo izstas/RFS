@@ -18,13 +18,13 @@ public final class MonitoredOutputStream extends FilterOutputStream {
 
     @Override
     public void write(int b) throws IOException {
-        super.write(b);
+        out.write(b);
         listener.bytesWritten(1);
     }
 
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
-        super.write(b, off, len);
+        out.write(b, off, len);
         listener.bytesWritten(len);
     }
 }
