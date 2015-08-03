@@ -1,5 +1,7 @@
 package me.izstas.rfs.client.ui.model;
 
+import java.util.Collections;
+import java.util.Comparator;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -7,6 +9,7 @@ import org.eclipse.jface.viewers.TreeViewer;
 import me.izstas.rfs.client.rfs.Rfs;
 import me.izstas.rfs.client.util.SwtAsyncExecutor;
 import me.izstas.rfs.model.DirectoryMetadata;
+import me.izstas.rfs.model.FileMetadata;
 import me.izstas.rfs.model.Metadata;
 
 /**
@@ -72,6 +75,20 @@ public class RfsMetadataNode extends RfsNode {
 
                 if (meta instanceof DirectoryMetadata) {
                     DirectoryMetadata dirMeta = (DirectoryMetadata) meta;
+
+                    Collections.sort(dirMeta.getContents(), new Comparator<Metadata>() {
+                        @Override
+                        public int compare(Metadata meta1, Metadata meta2) {
+                            if (meta1 instanceof DirectoryMetadata && meta2 instanceof FileMetadata) {
+                                return -1;
+                            }
+                            if (meta1 instanceof FileMetadata && meta2 instanceof DirectoryMetadata) {
+                                return 1;
+                            }
+
+                            return meta1.getName().compareToIgnoreCase(meta2.getName());
+                        }
+                    });
 
                     children = new RfsNode[dirMeta.getContents().size()];
                     for (int i = 0; i < children.length; i++) {
