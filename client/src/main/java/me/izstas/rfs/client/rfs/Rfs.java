@@ -95,6 +95,7 @@ public final class Rfs {
 
     /**
      * Performs GET / (get version information) API call.
+     * This call is executed asynchronously.
      */
     public ListenableFuture<Version> getVersion() {
         final HttpGet request = new HttpGet(uri);
@@ -112,13 +113,10 @@ public final class Rfs {
 
     /**
      * Performs GET /metadata/@path (get file metadata) API call.
+     * This call is executed asynchronously.
      */
     public ListenableFuture<Metadata> getMetadata(String path) {
-        if (path.startsWith("/")) {
-            path = path.substring(1);
-        }
-
-        final HttpGet request = new HttpGet(uri.resolve("metadata/").resolve(path));
+        final HttpGet request = new HttpGet(uri.resolve("metadata/").resolve(fixPath(path)));
         request.addHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
 
         return executor.submit(new Callable<Metadata>() {
@@ -134,27 +132,25 @@ public final class Rfs {
 
     /**
      * Performs POST /metadata/@path (apply file metadata) API call.
+     * This call is executed asynchronously.
      */
     public ListenableFuture<Void> applyMetadata(String path, Metadata metadata) {
-        if (path.startsWith("/")) {
-            path = path.substring(1);
-        }
-
-        final HttpPost request = new HttpPost(uri.resolve("metadata/").resolve(path));
+        final HttpPost request = new HttpPost(uri.resolve("metadata/").resolve(fixPath(path)));
         request.addHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 
         try {
             request.setEntity(new ByteArrayEntity(mapper.writeValueAsBytes(metadata)));
         }
         catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            throw new AssertionError(e); // Should not really be happening
         }
 
         return executor.submit(new Callable<Void>() {
             @Override
             public Void call() throws Exception {
                 try (CloseableHttpResponse response = client.execute(request, context)) {
-                    return checkAndParseResponse(response, Void.class);
+                    checkResponse(response);
+                    return null;
                 }
             }
         });
@@ -162,33 +158,35 @@ public final class Rfs {
 
     /**
      * Performs GET /content/@path (get file content) API call.
+     * This call is executed <strong>synchronously</strong>.
      */
     public void getContent(String path, final OutputStream output) throws IOException {
-        if (path.startsWith("/")) {
-            path = path.substring(1);
-        }
-
-        final HttpGet request = new HttpGet(uri.resolve("content/").resolve(path));
-        request.addHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON.getMimeType());
+        final HttpGet request = new HttpGet(uri.resolve("content/").resolve(fixPath(path)));
+        request.addHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_OCTET_STREAM.getMimeType());
 
         try (CloseableHttpResponse response = client.execute(request, context)) {
-            checkAndParseResponse(response, Void.class);
+            checkResponse(response);
             response.getEntity().writeTo(output);
         }
     }
 
 
-    private <T> T checkAndParseResponse(HttpResponse response, Class<T> clazz) throws IOException {
+    private String fixPath(String path) {
+        return path.startsWith("/") ? path.substring(1) : path;
+    }
+
+    private void checkResponse(HttpResponse response) {
         if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
             throw new RfsAuthenticationException();
         }
+
         if (response.getStatusLine().getStatusCode() == HttpStatus.SC_FORBIDDEN) {
             throw new RfsAccessException();
         }
+    }
 
-        if (clazz == Void.class) {
-            return null;
-        }
+    private <T> T checkAndParseResponse(HttpResponse response, Class<T> clazz) throws IOException {
+        checkResponse(response);
 
         try {
             return mapper.readValue(response.getEntity().getContent(), clazz);
