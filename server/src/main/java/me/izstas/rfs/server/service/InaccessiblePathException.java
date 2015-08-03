@@ -5,6 +5,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import me.izstas.rfs.server.RfsException;
 
+/**
+ * This exception is thrown when the user doesn't have access to perform the requested operation on the given path.
+ */
 @ResponseStatus(HttpStatus.FORBIDDEN)
 public class InaccessiblePathException extends RfsException {
     public InaccessiblePathException() {

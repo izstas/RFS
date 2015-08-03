@@ -1,5 +1,8 @@
 package me.izstas.rfs.server;
 
+/**
+ * A base class for all RFS exceptions.
+ */
 public class RfsException extends RuntimeException {
     public RfsException(String message) {
         super(message);

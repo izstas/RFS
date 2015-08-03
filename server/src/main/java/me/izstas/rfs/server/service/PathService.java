@@ -6,11 +6,14 @@ import org.springframework.stereotype.Service;
 
 import me.izstas.rfs.server.config.security.RfsUserDetails;
 
+/**
+ * This service is used to manage user-relative paths.
+ */
 @Service
 public class PathService {
     /**
      * Makes sure the provided path is in the user's root.
-     * @throws BadPathException if the path is not the user's root
+     * @throws BadPathException if the path is not in the user's root
      */
     public void validateUserPath(Path path) {
         Path currentPath = path.toAbsolutePath().normalize();

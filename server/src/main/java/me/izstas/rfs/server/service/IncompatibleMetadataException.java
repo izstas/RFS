@@ -5,6 +5,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import me.izstas.rfs.server.RfsException;
 
+/**
+ * This exception is thrown when the client requests to apply incompatible metadata, such as applying file metadata to a directory.
+ */
 @ResponseStatus(HttpStatus.CONFLICT)
 public class IncompatibleMetadataException extends RfsException {
     public IncompatibleMetadataException(String message) {

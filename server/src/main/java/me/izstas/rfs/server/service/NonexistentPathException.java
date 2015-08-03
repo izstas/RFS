@@ -5,6 +5,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import me.izstas.rfs.server.RfsException;
 
+/**
+ * This exception is thrown when the path specified by the user doesn't exist.
+ */
 @ResponseStatus(HttpStatus.NOT_FOUND)
 public class NonexistentPathException extends RfsException {
     public NonexistentPathException() {

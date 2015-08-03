@@ -12,11 +12,20 @@ import org.springframework.stereotype.Service;
 import me.izstas.rfs.server.config.security.RfsAccess;
 import me.izstas.rfs.model.*;
 
+/**
+ * This service provides ability to get metadata from files and apply new metadata to them.
+ */
 @Service
 public class MetadataService {
     @Autowired
     private PathService pathService;
 
+    /**
+     * Gets the metadata from the specified path.
+     * Requires read access.
+     * @param path the user path (path relative to user's root)
+     * @return the metadata
+     */
     @Secured(RfsAccess.READ)
     public Metadata getMetadataFromUserPath(String path) {
         Path resolvedPath = pathService.resolveUserPath(path);
@@ -27,10 +36,17 @@ public class MetadataService {
         return createMetadata(resolvedPath);
     }
 
+    /**
+     * Applies the metadata to the specified path.
+     * Requires write access.
+     * @param path the user path (path relative to user's root)
+     * @param metadata the metadata to apply
+     */
     @Secured(RfsAccess.WRITE)
     public void applyMetadataToUserPath(String path, Metadata metadata) {
         Path resolvedPath = pathService.resolveUserPath(path);
 
+        // Create the file/directory if doesn't exist
         if (metadata instanceof DirectoryMetadata) {
             if (Files.exists(resolvedPath) && Files.isRegularFile(resolvedPath)) {
                 throw new IncompatibleMetadataException("The path is a file");
@@ -58,7 +74,7 @@ public class MetadataService {
             }
         }
 
-
+        // Handle renaming
         if (metadata.getName() != null) {
             Path targetName = Paths.get(metadata.getName());
             if (targetName.isAbsolute()) {
@@ -68,21 +84,36 @@ public class MetadataService {
             Path targetPath = resolvedPath.resolveSibling(targetName);
             pathService.validateUserPath(targetPath);
 
-            if (Files.exists(targetPath)) {
-                throw new BadMetadataException("The target path (name) already exists");
-            }
+            if (!targetPath.equals(resolvedPath)) {
+                if (Files.exists(targetPath)) {
+                    throw new BadMetadataException("The target path (name) already exists");
+                }
 
-            PathUtils.createDirectories(targetPath, true);
+                PathUtils.createDirectories(targetPath, true);
 
-            try {
-                resolvedPath = Files.move(resolvedPath, targetPath);
-            }
-            catch (IOException e) {
-                throw PathUtils.wrapException(e, "Can't move the file/directory");
+                try {
+                    resolvedPath = Files.move(resolvedPath, targetPath);
+                }
+                catch (IOException e) {
+                    throw PathUtils.wrapException(e, "Can't move the file/directory");
+                }
             }
         }
 
-        BasicFileAttributeView basicAttrsView = Files.getFileAttributeView(resolvedPath, BasicFileAttributeView.class);
+        // Apply attributes
+        applyBasicAttributes(resolvedPath, metadata);
+
+        if (metadata.getAttributes() != null && metadata.getAttributes() instanceof PosixAttributes) {
+            applyPosixAttributes(resolvedPath, metadata);
+        }
+
+        if (metadata.getAttributes() != null && metadata.getAttributes() instanceof DosAttributes) {
+            applyDosAttributes(resolvedPath, metadata);
+        }
+    }
+
+    private void applyBasicAttributes(Path path, Metadata metadata) {
+        BasicFileAttributeView basicAttrsView = Files.getFileAttributeView(path, BasicFileAttributeView.class);
         try {
             basicAttrsView.setTimes(
                     metadata.getLastModificationTime() != null ? FileTime.fromMillis(metadata.getLastModificationTime()) : null,
@@ -92,59 +123,59 @@ public class MetadataService {
         catch (IOException e) {
             throw PathUtils.wrapException(e, "Can't apply basic file attributes");
         }
+    }
 
-        if (metadata.getAttributes() != null && metadata.getAttributes() instanceof PosixAttributes) {
-            PosixAttributes attrs = (PosixAttributes) metadata.getAttributes();
+    private void applyPosixAttributes(Path path, Metadata metadata) {
+        PosixAttributes attrs = (PosixAttributes) metadata.getAttributes();
 
-            PosixFileAttributeView posixAttrsView = Files.getFileAttributeView(resolvedPath, PosixFileAttributeView.class);
-            if (posixAttrsView != null) {
-                try {
-                    if (attrs.getUser() != null) {
-                        posixAttrsView.setOwner(resolvedPath.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName(attrs.getUser()));
-                    }
-
-                    if (attrs.getGroup() != null) {
-                        posixAttrsView.setGroup(resolvedPath.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByGroupName(attrs.getGroup()));
-                    }
-
-                    if (attrs.getPermissions() != null) {
-                        posixAttrsView.setPermissions(PosixFilePermissions.fromString(attrs.getPermissions()));
-                    }
+        PosixFileAttributeView posixAttrsView = Files.getFileAttributeView(path, PosixFileAttributeView.class);
+        if (posixAttrsView != null) {
+            try {
+                if (attrs.getUser() != null) {
+                    posixAttrsView.setOwner(path.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByName(attrs.getUser()));
                 }
-                catch (UserPrincipalNotFoundException e) {
-                    throw new BadMetadataException("The user/group does not exist", e);
+
+                if (attrs.getGroup() != null) {
+                    posixAttrsView.setGroup(path.getFileSystem().getUserPrincipalLookupService().lookupPrincipalByGroupName(attrs.getGroup()));
                 }
-                catch (IOException e) {
-                    throw PathUtils.wrapException(e, "Can't apply POSIX file attributes");
+
+                if (attrs.getPermissions() != null) {
+                    posixAttrsView.setPermissions(PosixFilePermissions.fromString(attrs.getPermissions()));
                 }
             }
+            catch (UserPrincipalNotFoundException e) {
+                throw new BadMetadataException("The user/group does not exist", e);
+            }
+            catch (IOException e) {
+                throw PathUtils.wrapException(e, "Can't apply POSIX file attributes");
+            }
         }
+    }
 
-        if (metadata.getAttributes() != null && metadata.getAttributes() instanceof DosAttributes) {
-            DosAttributes attrs = (DosAttributes) metadata.getAttributes();
+    private void applyDosAttributes(Path path, Metadata metadata) {
+        DosAttributes attrs = (DosAttributes) metadata.getAttributes();
 
-            DosFileAttributeView dosAttrsView = Files.getFileAttributeView(resolvedPath, DosFileAttributeView.class);
-            if (dosAttrsView != null) {
-                try {
-                    if (attrs.getReadOnly() != null) {
-                        dosAttrsView.setReadOnly(attrs.getReadOnly());
-                    }
-
-                    if (attrs.getHidden() != null) {
-                        dosAttrsView.setHidden(attrs.getHidden());
-                    }
-
-                    if (attrs.getSystem() != null) {
-                        dosAttrsView.setSystem(attrs.getSystem());
-                    }
-
-                    if (attrs.getArchive() != null) {
-                        dosAttrsView.setArchive(attrs.getArchive());
-                    }
+        DosFileAttributeView dosAttrsView = Files.getFileAttributeView(path, DosFileAttributeView.class);
+        if (dosAttrsView != null) {
+            try {
+                if (attrs.getReadOnly() != null) {
+                    dosAttrsView.setReadOnly(attrs.getReadOnly());
                 }
-                catch (IOException e) {
-                    throw PathUtils.wrapException(e, "Can't apply DOS file attributes");
+
+                if (attrs.getHidden() != null) {
+                    dosAttrsView.setHidden(attrs.getHidden());
                 }
+
+                if (attrs.getSystem() != null) {
+                    dosAttrsView.setSystem(attrs.getSystem());
+                }
+
+                if (attrs.getArchive() != null) {
+                    dosAttrsView.setArchive(attrs.getArchive());
+                }
+            }
+            catch (IOException e) {
+                throw PathUtils.wrapException(e, "Can't apply DOS file attributes");
             }
         }
     }

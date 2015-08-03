@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import me.izstas.rfs.server.RfsException;
 
 /**
+ * This exception is thrown when the path specified by the user is invalid.
  * @see PathService#validateUserPath(java.nio.file.Path)
  */
 @ResponseStatus(HttpStatus.BAD_REQUEST)
