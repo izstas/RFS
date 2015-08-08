@@ -1,4 +1,4 @@
-***Disclaimer**: This project is made for solely educational purposes and is not supported.*
+*__Disclaimer__: This project is made for solely educational purposes and is not supported.*
 
 This project is a client-server application which exposes a subtree of server's filesystem over HTTP with a RESTful API.
 
