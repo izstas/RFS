@@ -12,11 +12,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
+import me.izstas.rfs.client.RfsPrefs;
 import me.izstas.rfs.client.rfs.Rfs;
 import me.izstas.rfs.client.util.SwtAsyncExecutor;
 import me.izstas.rfs.model.Version;
@@ -79,7 +79,6 @@ public final class ServerDialog extends Dialog {
         authGroup.setText(Messages.ServerDialog_authentication);
 
         authAnonCheck = new Button(authGroup, SWT.CHECK);
-        authAnonCheck.setSelection(true);
         authAnonCheck.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
         authAnonCheck.setText(Messages.ServerDialog_authentication_anonymous);
         authAnonCheck.addSelectionListener(new SelectionAdapter() {
@@ -94,18 +93,25 @@ public final class ServerDialog extends Dialog {
         authUserLabel.setText(Messages.ServerDialog_authentication_username);
 
         authUserText = new Text(authGroup, SWT.BORDER);
-        authUserText.setEnabled(false);
         authUserText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
         Label authPwdLabel = new Label(authGroup, SWT.NONE);
         authPwdLabel.setText(Messages.ServerDialog_authentication_password);
 
         authPwdText = new Text(authGroup, SWT.BORDER | SWT.PASSWORD);
-        authPwdText.setEnabled(false);
         authPwdText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
         statusLabel = new Label(container, SWT.NONE);
         statusLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
+
+        // Load stored user preferences
+        urlText.setText(RfsPrefs.getLastConnectionUrl());
+        authAnonCheck.setSelection(RfsPrefs.wasLastConnectionAuthAnonymous());
+        authUserText.setText(RfsPrefs.getLastConnectionAuthUsername());
+        authPwdText.setText(RfsPrefs.getLastConnectionAuthPassword());
+
+        authUserText.setEnabled(!authAnonCheck.getSelection());
+        authPwdText.setEnabled(!authAnonCheck.getSelection());
 
         return container;
     }
@@ -135,6 +141,9 @@ public final class ServerDialog extends Dialog {
                 check(); // Forcing a check will show user the error
                 return;
             }
+
+            // Save user preferences
+            RfsPrefs.setLastConnection(urlText.getText(), authAnonCheck.getSelection(), authUserText.getText(), authPwdText.getText());
 
             setReturnCode(OK);
             close();
