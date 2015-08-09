@@ -83,6 +83,9 @@ public final class RfsPrefs {
                 // Ignore
             }
         }
+        else {
+            prefs.remove("lastConnectionPassword");
+        }
     }
 
 
