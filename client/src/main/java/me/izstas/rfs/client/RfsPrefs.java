@@ -80,7 +80,7 @@ public final class RfsPrefs {
                 prefs.putByteArray("lastConnectionPassword", cipher.doFinal(authPassword.getBytes(Charsets.UTF_8)));
             }
             catch (GeneralSecurityException e) {
-                e.printStackTrace();
+                // Ignore
             }
         }
     }
