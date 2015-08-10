@@ -16,7 +16,7 @@ public final class Messages extends NLS {
     public static String MainWindow_title;
     public static String MainWindow_menu_server;
     public static String MainWindow_action_connect;
-    public static String MainWindow_action_refresh;
+    public static String MainWindow_action_refreshAll;
     public static String MainWindow_action_exit;
     public static String MainWindow_action_download;
     public static String MainWindow_action_attributes;

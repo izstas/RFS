@@ -35,7 +35,7 @@ import me.izstas.rfs.model.Metadata;
 public final class MainWindow extends ApplicationWindow {
     private TreeViewer rfsTreeViewer;
     private Action connectAction;
-    private Action refreshAction;
+    private Action refreshAllAction;
     private Action exitAction;
     private Action downloadAction;
     private Action attributesAction;
@@ -110,12 +110,12 @@ public final class MainWindow extends ApplicationWindow {
                     rfs = serverDialog.getRfs();
                     rfsTreeViewer.setContentProvider(new RfsTreeContentProvider(rfs, rfsTreeViewer));
                     rfsTreeViewer.setInput(new RfsRootNode());
-                    refreshAction.setEnabled(true);
+                    refreshAllAction.setEnabled(true);
                 }
             }
         };
 
-        refreshAction = new Action(Messages.MainWindow_action_refresh) {
+        refreshAllAction = new Action(Messages.MainWindow_action_refreshAll) {
             @Override
             public void run() {
                 if (rfsTreeViewer.getInput() != null) {
@@ -124,8 +124,8 @@ public final class MainWindow extends ApplicationWindow {
                 }
             }
         };
-        refreshAction.setEnabled(false);
-        refreshAction.setAccelerator(SWT.F5);
+        refreshAllAction.setEnabled(false);
+        refreshAllAction.setAccelerator(SWT.CTRL | SWT.F5);
 
         exitAction = new Action(Messages.MainWindow_action_exit) {
             @Override
@@ -200,7 +200,7 @@ public final class MainWindow extends ApplicationWindow {
         menu.add(serverMenu);
 
         serverMenu.add(connectAction);
-        serverMenu.add(refreshAction);
+        serverMenu.add(refreshAllAction);
         serverMenu.add(new Separator());
         serverMenu.add(exitAction);
 
