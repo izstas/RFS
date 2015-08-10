@@ -18,10 +18,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.*;
 
 import me.izstas.rfs.client.rfs.Rfs;
-import me.izstas.rfs.client.ui.model.RfsMetadataNode;
-import me.izstas.rfs.client.ui.model.RfsRootNode;
-import me.izstas.rfs.client.ui.model.RfsTreeContentProvider;
-import me.izstas.rfs.client.ui.model.RfsTreeColumnLabelProviders;
+import me.izstas.rfs.client.ui.model.*;
 import me.izstas.rfs.client.util.SwtAsyncExecutor;
 import me.izstas.rfs.model.FileMetadata;
 import me.izstas.rfs.model.Metadata;
@@ -36,6 +33,7 @@ public final class MainWindow extends ApplicationWindow {
     private Action exitAction;
     private Action downloadAction;
     private Action attributesAction;
+    private Action refreshAction;
 
     private Rfs rfs;
 
@@ -63,7 +61,7 @@ public final class MainWindow extends ApplicationWindow {
         Tree rfsTree = rfsTreeViewer.getTree();
         rfsTree.setHeaderVisible(true);
 
-        // setAccelerator() doesn't make keyboard shortcuts involving Enter handled
+        // Handle accelerator keys in the TreeViewer context menu
         rfsTree.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
@@ -72,6 +70,9 @@ public final class MainWindow extends ApplicationWindow {
                 }
                 else if (e.keyCode == SWT.CR && (e.stateMask & SWT.MODIFIER_MASK) == SWT.ALT && attributesAction.isEnabled()) { // Alt-Enter
                     attributesAction.run();
+                }
+                else if (e.keyCode == SWT.F5 && (e.stateMask & SWT.MODIFIER_MASK) == SWT.NONE && refreshAction.isEnabled()) { // F5
+                    refreshAction.run();
                 }
             }
         });
@@ -197,6 +198,20 @@ public final class MainWindow extends ApplicationWindow {
         };
         attributesAction.setEnabled(false);
         attributesAction.setAccelerator(SWT.ALT | SWT.CR);
+
+        refreshAction = new Action(Messages.MainWindow_action_refresh) {
+            @Override
+            public void run() {
+                final RfsNode node = (RfsNode) ((ITreeSelection) rfsTreeViewer.getSelection()).getFirstElement();
+
+                if (node != null && node.getParent() instanceof RfsMetadataNode) {
+                    ((RfsMetadataNode) node.getParent()).retrieveChildren(rfs, rfsTreeViewer);
+                    rfsTreeViewer.refresh(node.getParent());
+                }
+            }
+        };
+
+        refreshAction.setAccelerator(SWT.F5);
     }
 
     @Override
@@ -218,6 +233,8 @@ public final class MainWindow extends ApplicationWindow {
         MenuManager menu = new MenuManager();
         menu.add(downloadAction);
         menu.add(attributesAction);
+        menu.add(new Separator());
+        menu.add(refreshAction);
 
         rfsTreeViewer.getTree().setMenu(menu.createContextMenu(rfsTreeViewer.getTree()));
         rfsTreeViewer.addSelectionChangedListener(new ISelectionChangedListener() {

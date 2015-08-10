@@ -20,6 +20,7 @@ public final class Messages extends NLS {
     public static String MainWindow_action_exit;
     public static String MainWindow_action_download;
     public static String MainWindow_action_attributes;
+    public static String MainWindow_action_refresh;
     public static String MainWindow_tree_column_name;
     public static String MainWindow_tree_column_size;
     public static String MainWindow_tree_column_dateModified;
