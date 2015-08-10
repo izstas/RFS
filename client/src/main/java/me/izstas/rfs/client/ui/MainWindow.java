@@ -8,18 +8,13 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.ITreeSelection;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.jface.viewers.TreeViewerColumn;
+import org.eclipse.jface.layout.TreeColumnLayout;
+import org.eclipse.jface.viewers.*;
 import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
 import me.izstas.rfs.client.rfs.Rfs;
@@ -60,15 +55,12 @@ public final class MainWindow extends ApplicationWindow {
     @Override
     protected Control createContents(Composite parent) {
         Composite container = new Composite(parent, SWT.NONE);
-        GridLayout containerLayout = new GridLayout(1, false);
-        containerLayout.marginWidth = 0;
-        containerLayout.marginHeight = 0;
+        TreeColumnLayout containerLayout = new TreeColumnLayout();
         container.setLayout(containerLayout);
 
-        rfsTreeViewer = new TreeViewer(container, SWT.NONE);
+        rfsTreeViewer = new TreeViewer(container, SWT.NO_SCROLL | SWT.V_SCROLL); // Ugly, but see https://bugs.eclipse.org/bugs/show_bug.cgi?id=347182
         addTreeViewerMenu();
         Tree rfsTree = rfsTreeViewer.getTree();
-        rfsTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
         rfsTree.setHeaderVisible(true);
 
         // setAccelerator() doesn't make keyboard shortcuts involving Enter handled
@@ -87,26 +79,26 @@ public final class MainWindow extends ApplicationWindow {
         TreeViewerColumn rfsTreeViewerNameColumn = new TreeViewerColumn(rfsTreeViewer, SWT.NONE);
         rfsTreeViewerNameColumn.setLabelProvider(new RfsTreeColumnLabelProviders.Name());
         TreeColumn rfsTreeNameColumn = rfsTreeViewerNameColumn.getColumn();
-        rfsTreeNameColumn.setWidth(300);
         rfsTreeNameColumn.setText(Messages.MainWindow_tree_column_name);
+        containerLayout.setColumnData(rfsTreeNameColumn, new ColumnWeightData(300));
 
         TreeViewerColumn rfsTreeViewerSizeColumn = new TreeViewerColumn(rfsTreeViewer, SWT.NONE);
         rfsTreeViewerSizeColumn.setLabelProvider(new RfsTreeColumnLabelProviders.Size());
         TreeColumn rfsTreeSizeColumn = rfsTreeViewerSizeColumn.getColumn();
-        rfsTreeSizeColumn.setWidth(100);
         rfsTreeSizeColumn.setText(Messages.MainWindow_tree_column_size);
+        containerLayout.setColumnData(rfsTreeSizeColumn, new ColumnPixelData(100));
 
         TreeViewerColumn rfsTreeViewerModifiedColumn = new TreeViewerColumn(rfsTreeViewer, SWT.NONE);
         rfsTreeViewerModifiedColumn.setLabelProvider(new RfsTreeColumnLabelProviders.DateModified());
         TreeColumn rfsTreeModifiedColumn = rfsTreeViewerModifiedColumn.getColumn();
-        rfsTreeModifiedColumn.setWidth(200);
         rfsTreeModifiedColumn.setText(Messages.MainWindow_tree_column_dateModified);
+        containerLayout.setColumnData(rfsTreeModifiedColumn, new ColumnPixelData(200));
 
         TreeViewerColumn rfsTreeViewerAttributesColumn = new TreeViewerColumn(rfsTreeViewer, SWT.NONE);
         rfsTreeViewerAttributesColumn.setLabelProvider(new RfsTreeColumnLabelProviders.Attributes());
         TreeColumn rfsTreeAttributesColumn = rfsTreeViewerAttributesColumn.getColumn();
-        rfsTreeAttributesColumn.setWidth(200);
         rfsTreeAttributesColumn.setText(Messages.MainWindow_tree_column_attributes);
+        containerLayout.setColumnData(rfsTreeAttributesColumn, new ColumnPixelData(200));
 
         return container;
     }
