@@ -33,6 +33,7 @@ public final class ServerDialog extends Dialog {
     private Button authAnonCheck;
     private Text authUserText;
     private Text authPwdText;
+    private Button authRememberPasswordCheck;
     private Label statusLabel;
 
     private Rfs checkRfs;
@@ -86,6 +87,7 @@ public final class ServerDialog extends Dialog {
             public void widgetSelected(SelectionEvent e) {
                 authUserText.setEnabled(!authAnonCheck.getSelection());
                 authPwdText.setEnabled(!authAnonCheck.getSelection());
+                authRememberPasswordCheck.setEnabled(!authAnonCheck.getSelection());
             }
         });
 
@@ -101,6 +103,10 @@ public final class ServerDialog extends Dialog {
         authPwdText = new Text(authGroup, SWT.BORDER | SWT.PASSWORD);
         authPwdText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
+        new Label(authGroup, SWT.NONE); // Apparently this is necessary to get the control placement we want
+        authRememberPasswordCheck = new Button(authGroup, SWT.CHECK);
+        authRememberPasswordCheck.setText(Messages.ServerDialog_authentication_rememberPassword);
+
         statusLabel = new Label(container, SWT.NONE);
         statusLabel.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
 
@@ -112,6 +118,8 @@ public final class ServerDialog extends Dialog {
 
         authUserText.setEnabled(!authAnonCheck.getSelection());
         authPwdText.setEnabled(!authAnonCheck.getSelection());
+        authRememberPasswordCheck.setEnabled(!authAnonCheck.getSelection());
+        authRememberPasswordCheck.setSelection(!authPwdText.getText().isEmpty());
 
         return container;
     }
@@ -143,7 +151,8 @@ public final class ServerDialog extends Dialog {
             }
 
             // Save user preferences
-            RfsPrefs.setLastConnection(urlText.getText(), authAnonCheck.getSelection(), authUserText.getText(), authPwdText.getText());
+            RfsPrefs.setLastConnection(urlText.getText(), authAnonCheck.getSelection(), authUserText.getText(),
+                    authRememberPasswordCheck.getSelection() ? authPwdText.getText() : null);
 
             setReturnCode(OK);
             close();
