@@ -15,6 +15,8 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -68,6 +70,19 @@ public final class MainWindow extends ApplicationWindow {
         Tree rfsTree = rfsTreeViewer.getTree();
         rfsTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
         rfsTree.setHeaderVisible(true);
+
+        // setAccelerator() doesn't make keyboard shortcuts involving Enter handled
+        rfsTree.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.keyCode == SWT.CR && (e.stateMask & SWT.MODIFIER_MASK) == SWT.NONE && downloadAction.isEnabled()) { // Enter
+                    downloadAction.run();
+                }
+                else if (e.keyCode == SWT.CR && (e.stateMask & SWT.MODIFIER_MASK) == SWT.ALT && attributesAction.isEnabled()) { // Alt-Enter
+                    attributesAction.run();
+                }
+            }
+        });
 
         TreeViewerColumn rfsTreeViewerNameColumn = new TreeViewerColumn(rfsTreeViewer, SWT.NONE);
         rfsTreeViewerNameColumn.setLabelProvider(new RfsTreeColumnLabelProviders.Name());
