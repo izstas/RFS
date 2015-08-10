@@ -47,7 +47,7 @@ public final class MainWindow extends ApplicationWindow {
     protected void configureShell(Shell newShell) {
         super.configureShell(newShell);
 
-        newShell.setText(Messages.MainWindow_title);
+        newShell.setText(Messages.MainWindow_title_notConnected);
     }
 
     @Override
@@ -119,6 +119,7 @@ public final class MainWindow extends ApplicationWindow {
                     rfsTreeViewer.setContentProvider(new RfsTreeContentProvider(rfs, rfsTreeViewer));
                     rfsTreeViewer.setInput(new RfsRootNode());
                     refreshAllAction.setEnabled(true);
+                    getShell().setText(String.format(Messages.MainWindow_title_connected, rfs.getUri()));
                 }
             }
         };

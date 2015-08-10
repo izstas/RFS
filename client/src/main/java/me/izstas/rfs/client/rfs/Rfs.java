@@ -93,6 +93,12 @@ public final class Rfs {
         executor.shutdownNow();
     }
 
+    /**
+     * Returns the RFS API base URI this instance accesses.
+     */
+    public URI getUri() {
+        return uri;
+    }
 
     /**
      * Performs a GET / (get version information) API call.

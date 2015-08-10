@@ -13,7 +13,8 @@ import me.izstas.rfs.client.rfs.RfsResponseException;
 public final class Messages extends NLS {
     private static final String BUNDLE_NAME = "me.izstas.rfs.client.ui.messages"; // $NON-NLS-1$
 
-    public static String MainWindow_title;
+    public static String MainWindow_title_notConnected;
+    public static String MainWindow_title_connected;
     public static String MainWindow_menu_server;
     public static String MainWindow_action_connect;
     public static String MainWindow_action_refreshAll;
